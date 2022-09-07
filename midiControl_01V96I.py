@@ -1,6 +1,8 @@
 from distutils.log import info
 import sys
 import os
+import time
+from warnings import catch_warnings
 
 import pygame as pg
 import pygame.midi
@@ -100,7 +102,16 @@ def find_01V96i_desk():
                 output_id = i
     return(input_id,output_id)
 
-#pygame.midi.init()
-#print(pygame.midi.get_device_info(an_id=0))
+def establish_connection():
+    device = find_01V96i_desk()
+    (input_id, output_id) = device
+    print('Input id:', input_id)
+    pygame.midi.init()
+    conn = pygame.midi.Input(input_id)
+    while True:
+        conn.poll()
+        #print('Connection OK')
+        time.sleep(.1)
 
-print(find_01V96i_desk())
+#print(find_01V96i_desk())
+establish_connection()
