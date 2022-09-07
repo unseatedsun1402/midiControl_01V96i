@@ -2,10 +2,14 @@ from distutils.log import info
 import sys
 import os
 import time
-from warnings import catch_warnings
-
 import pygame as pg
 import pygame.midi
+import csv
+from warnings import catch_warnings
+
+def connection():
+    in_id = int
+    out_id = int
 
 ##--------print midi devices---------##
 def print_device_info():
@@ -89,29 +93,43 @@ def input_main(device_id=None):
 '''finds the mixing desk in the midi interfaces'''
 def find_01V96i_desk():
     pygame.midi.init()
-    find = b'Yamaha 01V96i-1'
-    input_id = int
-    output_id = int
+    findA = b'Yamaha 01V96i-1'
+    findB = b'2- Yamaha 01V96i-1'
+    input_id = -1
+    output_id = -1
     for i in range(pygame.midi.get_count()):
         device = pygame.midi.get_device_info(i)
         (interf, name, input, output, opened) = device
-        if name==find:
+        if name==findA or name == findB:
             if input:
                 input_id = i
             if output:
                 output_id = i
+    pygame.midi.quit
     return(input_id,output_id)
 
 def establish_connection():
-    device = find_01V96i_desk()
+    device = find_01V96i_desk() #returns input and output id
+    print(device)
     (input_id, output_id) = device
-    print('Input id:', input_id)
+    #print('Input id:', input_id)
     pygame.midi.init()
-    conn = pygame.midi.Input(input_id)
-    while True:
-        conn.poll()
-        #print('Connection OK')
-        time.sleep(.1)
+    try:    #tests connection is successful and fails gracefully else
+        conn = pygame.midi.Input(input_id)
+        print(conn.poll())
 
-#print(find_01V96i_desk())
+        if conn.poll():
+            print('Connection OK')
+            connection.in_id=input_id
+            connection.out_id=output_id
+    except(pygame.midi.MidiException):
+        print("Connection Failed")
+
+
+##--------populate meter values--------##
+with open('METER_DATA.csv','r')as csv_file:
+    csv_reader = csv.DictReader(csv_file)
+
+##--------pull meter data--------##
+
 establish_connection()
