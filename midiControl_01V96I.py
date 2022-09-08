@@ -1,6 +1,3 @@
-from distutils.log import info
-import sys
-import os
 import time
 import pygame as pg
 import pygame.midi
@@ -105,23 +102,18 @@ def find_01V96i_desk():
                 input_id = i
             if output:
                 output_id = i
-    pygame.midi.quit
     return(input_id,output_id)
 
 def establish_connection():
     device = find_01V96i_desk() #returns input and output id
-    print(device)
     (input_id, output_id) = device
-    #print('Input id:', input_id)
+    connection.in_id = input_id
+    connection.out_id = output_id
     pygame.midi.init()
     try:    #tests connection is successful and fails gracefully else
-        conn = pygame.midi.Input(input_id)
-        print(conn.poll())
-
+        conn = pygame.midi.Input(connection.in_id)
         if conn.poll():
             print('Connection OK')
-            connection.in_id=input_id
-            connection.out_id=output_id
     except(pygame.midi.MidiException):
         print("Connection Failed")
 
@@ -131,5 +123,22 @@ with open('METER_DATA.csv','r')as csv_file:
     csv_reader = csv.DictReader(csv_file)
 
 ##--------pull meter data--------##
+def get_stereo_level():
+    ''''''
+
+##--------send fader position--------##
+def push_fader_level(int):
+    pygame.midi.init()
+    print(pygame.midi.get_count())
+    pygame.midi.Output.write_sys_ex(10,msg=[0xF0,0x43,0x31,0x3E,0x7F,0x01,0x32,0x01,0xcc,0xF7],when=pygame.midi.time())
+    pygame.midi.quit()
+#push_fader_level(0)
+
+##--------channel on--------##
+def channel_on():
+    pygame.midi.init()
+    print(pygame.midi.Input(1).poll())
+    pygame.midi.Output(10).write_sys_ex(msg=[0xF0,0x43,0x11,0x3E,0x1A,0x20,0x00,0x00,0x00,0xdd,0xF7], when=pygame.midi.time())
 
 establish_connection()
+channel_on()
