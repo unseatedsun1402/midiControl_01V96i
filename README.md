@@ -7,7 +7,9 @@ When the program is capable of sending and recieving meaningful data (i.e. can m
 
 When the ui is functional then the project will be under alpha release.
 
-Goal for Version 1.0:
-  \n A program that can read desk parameters live and display them as well as allowing the user to make changes to the settings.
-  \n A graphical user interface emulating real-world controls (such as knobs and faders)
-  \n A server function for multiple simultaneous mobile devices to make edits/see parameters live.
+Goals for Version 1.0:
+  *A program that can read desk parameters live and display them as well as allowing the user to make changes to the settings.
+  
+  *A graphical user interface emulating real-world controls (such as knobs and faders)
+  
+  *A server function for multiple simultaneous mobile devices to make edits/see parameters live.
