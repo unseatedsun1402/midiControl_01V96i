@@ -1,6 +1,6 @@
 import csv
 
-with open('METER_DATA.csv','r')as csv_file:
-    csv_reader = csv.DictReader(csv_file)
+with open('meterValues.csv','r')as csv_file:
+    csv_reader = csv.DictReader(csv_file,delimiter=',')
     for line in csv_reader:
         print(line)

@@ -1,7 +1,9 @@
 from distutils.log import info
+import string
 import sys
 import os
 import time
+from tokenize import String
 import pygame as pg
 import pygame.midi
 import csv
@@ -112,46 +114,67 @@ def establish_connection(device):
     (input_id, output_id) = device
     #print('Input id:', input_id)
     pygame.midi.init()
-    '''for i in range(pygame.midi.get_count()):
-        try:
-            
-                print(pygame.midi.Input(i).poll())
-        except(pygame.midi.MidiException):
-            print('nothing')
-    try:    #tests connection is successful and fails gracefully else
-        conn = pygame.midi.Input(input_id)
-            
-
-        if conn.poll():
-            print('Connection OK')
-            connection.in_id=input_id
-            connection.out_id=output_id
-    except(pygame.midi.MidiException):
-        print("Connection Failed")'''
     
     #poll for master bus level
     'F0	43	30	3E	1A	21	04	00	7F	00	01	F7'
     outConn = pygame.midi.Output(output_id)
-    conn = pygame.midi.Input(input_id,buffer_size=256)
+    conn = pygame.midi.Input(input_id)
     while True:
-        outConn.write_sys_ex(0,[0xF0,0x43,0x30,0x3E,0x1A,0x21,0x04,0x00,0x7F,0x00,0x01,0xF7])
-        time.sleep(1)
-        for i in range(3):
+        outConn.write_sys_ex(0,[0xf0,0x43,0x30,0x3e,0x1a,0x21,0x04,0x7f,0x7f,0x00,0x01,0xf7])
+        time.sleep(0.05)
+        dataString = ""
+        processed = []
+        for i in range(2):
             dataToProcess = list
             dataToProcess = conn.read(1)
-            print(dataToProcess[0][0])
-            dataObj = bytes(dataToProcess[0][0])
-            print(dataObj)
-        time.sleep(3)
+            #print(dataToProcess[0][0])
+            for each in(dataToProcess[0][0]):
+                dataObj=hex(each)
+                processed.append(dataObj)
+        if(processed == ['0xf0', '0x43', '0x10', '0x3e', '0x1a', '0x21', '0x4', '0x7f']):
+            meterData = []
+            for i in range(2):
+                dataToProcess = list
+                dataToProcess = conn.read(1)
+                #print(dataToProcess[0][0])
+                for each in(dataToProcess[0][0]):
+                    dataObj=each
+                    meterData.append(dataObj)
+            
+            print('OK',meterData)
+        else:
+            #print('nothing')    
+            conn.close
+        #print(dataString)
+        
+        time.sleep(0.01)
 
 
 
 
 ##--------populate meter values--------##
-#with open('METER_DATA.csv','r')as csv_file:
-#    csv_reader = csv.DictReader(csv_file)
+with open('METER_DATA.csv','r')as csv_file:
+    csv_reader = csv.DictReader(csv_file)
 
 ##--------pull meter data--------##
 
+
+##--------create channel objects--------##
+class Channel:
+    cc = int
+    name = string
+    faderVal = hex
+
+def createChannels():
+    channels = []
+    for i in range(39):
+        channels.append('ch'+ str(i))
+    i = 0
+    for channel in channels:
+        channel = Channel
+        channel.name = channel
+        channel.cc =+ 1
+    print(channels)
 #establish_connection()
-establish_connection(find_01V96i_desk())
+#establish_connection(find_01V96i_desk())
+createChannels()
