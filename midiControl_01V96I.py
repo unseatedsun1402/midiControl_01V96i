@@ -9,9 +9,19 @@ import pygame.midi
 import csv
 from warnings import catch_warnings
 
-def connection():
-    in_id = int
-    out_id = int
+class Connection():
+    input = pygame.midi.Input
+    output = pygame.midi.Output
+
+    
+        
+    def __init__(self, device):
+        (input_id,output_id) = device
+        self.input = pygame.midi.Input(input_id)
+        self.output = pygame.midi.Output(output_id)
+    
+
+    
 
 ##--------print midi devices---------##
 def print_device_info():
@@ -35,6 +45,24 @@ def _print_device_info():
             % (i, interf, name, opened, in_out)
         )
 #print_device_info()
+
+'''finds the mixing desk in the midi interfaces'''
+def find_01V96i_desk():
+    pygame.midi.init()
+    findA = b'Yamaha 01V96i-1'
+    findB = b'2- Yamaha 01V96i-1'
+    input_id = -1
+    output_id = -1
+    for i in range(pygame.midi.get_count()):
+        device = pygame.midi.get_device_info(i)
+        (interf, name, input, output, opened) = device
+        if name==findA or name == findB:
+            if input:
+                input_id = i
+            if output:
+                output_id = i
+    pygame.midi.quit
+    return(input_id,output_id)
 
 ##-------select main input device--------##
 def input_main(device_id=None):
@@ -92,63 +120,6 @@ def input_main(device_id=None):
         print(f"using output_id :{port}:")
         midi_out = pygame.midi.Output(port, 0)
 
-'''finds the mixing desk in the midi interfaces'''
-def find_01V96i_desk():
-    pygame.midi.init()
-    findA = b'Yamaha 01V96i-1'
-    findB = b'2- Yamaha 01V96i-1'
-    input_id = -1
-    output_id = -1
-    for i in range(pygame.midi.get_count()):
-        device = pygame.midi.get_device_info(i)
-        (interf, name, input, output, opened) = device
-        if name==findA or name == findB:
-            if input:
-                input_id = i
-            if output:
-                output_id = i
-    pygame.midi.quit
-    return(input_id,output_id)
-
-def establish_connection(device):
-    (input_id, output_id) = device
-    #print('Input id:', input_id)
-    pygame.midi.init()
-    
-    #poll for master bus level
-    'F0	43	30	3E	1A	21	04	00	7F	00	01	F7'
-    outConn = pygame.midi.Output(output_id)
-    conn = pygame.midi.Input(input_id)
-    while True:
-        outConn.write_sys_ex(0,[0xf0,0x43,0x30,0x3e,0x1a,0x21,0x04,0x7f,0x7f,0x00,0x01,0xf7])
-        time.sleep(0.05)
-        dataString = ""
-        processed = []
-        for i in range(2):
-            dataToProcess = list
-            dataToProcess = conn.read(1)
-            #print(dataToProcess[0][0])
-            for each in(dataToProcess[0][0]):
-                dataObj=hex(each)
-                processed.append(dataObj)
-        if(processed == ['0xf0', '0x43', '0x10', '0x3e', '0x1a', '0x21', '0x4', '0x7f']):
-            meterData = []
-            for i in range(2):
-                dataToProcess = list
-                dataToProcess = conn.read(1)
-                #print(dataToProcess[0][0])
-                for each in(dataToProcess[0][0]):
-                    dataObj=each
-                    meterData.append(dataObj)
-            
-            print('OK',meterData)
-        else:
-            #print('nothing')    
-            conn.close
-        #print(dataString)
-        
-        time.sleep(0.01)
-
 
 
 
@@ -165,16 +136,55 @@ class Channel:
     name = string
     faderVal = hex
 
-def createChannels():
-    channels = []
-    for i in range(39):
-        channels.append('ch'+ str(i))
-    i = 0
-    for channel in channels:
-        channel = Channel
-        channel.name = channel
-        channel.cc =+ 1
-    print(channels)
-#establish_connection()
+    def __init__(self, cc):
+        stripped_cc = cc[2:]
+        self.cc = int(stripped_cc)
+        self.name = cc
+        self.checkme = 'awesome {}'.format(self.name)
+    
+    def __setValue__(self, val):
+        self.faderVal = val
+    
+    def __faderRead__(self):
+        self.faderLevel = int(self.faderLevel)
+def createChannels(numberOfChannels: int):
+    for i in range(numberOfChannels):
+        instanceIDs.append('ch'+str(i))
+    print(instanceIDs)
+
+##--------fader control--------##
+def getbytes(cc):
+    values = bytearray
+    values = [0x00,0x00,0x0,0x11]
+    setFaderlvl(cc,values)
+
+def setFaderlvl(cc,values):
+    device = find_01V96i_desk()
+    (input_id, output_id) = device
+    pygame.midi.init()
+    bytes = bytearray
+    bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,cc,values[0],values[1],values[2],values[3],0xF7]
+    try:
+        connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+    except(pygame.midi.MidiException):
+        print('failed')
+    
+    
+
+    
+
+instanceIDs = []
+connection = Connection(find_01V96i_desk())
 #establish_connection(find_01V96i_desk())
-createChannels()
+createChannels(40)
+holder = {name: Channel(cc=name) for name in instanceIDs}
+#print(holder['ch19'].cc)
+
+getbytes(holder['ch0'].cc)
+flag = True
+while flag:
+    for channel in holder:
+        getbytes(holder[channel].cc)
+
+    print(holder['ch39'].checkme)
+    flag = False
