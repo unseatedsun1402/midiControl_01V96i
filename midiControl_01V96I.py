@@ -159,8 +159,6 @@ def getbytes(cc):
     setFaderlvl(cc,values)
 
 def setFaderlvl(cc,values):
-    device = find_01V96i_desk()
-    (input_id, output_id) = device
     pygame.midi.init()
     bytes = bytearray
     bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,cc,values[0],values[1],values[2],values[3],0xF7]
@@ -168,6 +166,22 @@ def setFaderlvl(cc,values):
         connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
     except(pygame.midi.MidiException):
         print('failed')
+
+def getFaderlvl(cc):
+    bytes = bytearray
+    bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,cc,0xF7]
+    connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+    time.sleep(0.05)
+    message = []
+    reading = False
+    for event in connection.input.read(256):
+        for byte in event[1]:
+            if event[0][0] == 0xf0:
+                if not reading:
+                    message = [event[0][0]]
+                    reading = True
+                else:
+                    message.append(byte)
     
     
 
