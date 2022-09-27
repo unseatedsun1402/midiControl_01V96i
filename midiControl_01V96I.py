@@ -146,10 +146,9 @@ class Channel:
     faderOn = int
     """channel On or Off"""
 
-    def __init__(self, cc):
-        stripped_cc = cc[2:]
-        self.cc = int(stripped_cc)
-        self.name = cc
+    def __init__(self, name):
+        self.cc = int(name[2:])
+        self.name = name
         self.checkme = 'awesome {}'.format(self.name)
     
     def __setValue__(self, val):
@@ -207,12 +206,18 @@ def getFaderlvl(self):
                     message.append(byte)
 
 ##--------Aux Controls--------##
-def aux():
-    """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
-    pattern = {
-        "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23],
-        "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23]
-    }
+class Aux():
+    
+    
+
+    def __init__(self,name):
+        self.cc = int(name[2:])
+        """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
+        self.pattern = {
+            "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,self.cc],
+            "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,self.cc]
+        }
+        self.name = "aux" + str(self.cc//3)
 
     def getAuxLevel(self):
         bytes = pattern["request"]
@@ -236,23 +241,31 @@ def aux():
                 elif reading:
                         message.append(byte)
 
+
+def createAuxChannels(numberOfChannels: int):
+    for i in range(numberOfChannels):
+        auxIDs.append('cc'+str(i))
+
     
 
 instanceIDs = []
+auxIDs = []
 connection = Connection(find_01V96i_desk())
 #establish_connection(find_01V96i_desk())
 createChannels(40)
-holder = {name: Channel(cc=name) for name in instanceIDs}
-#print(holder['ch19'].cc)
+createAuxChannels(24)
+channels = {name: Channel(name=name) for name in instanceIDs}
+auxChannels = {name: Aux(name=name) for name in auxIDs}
+print(auxChannels['cc3'].pattern['request'])
+print(auxChannels['cc15'].name)
 
-getbytes(holder['ch5'])
+
+#print(channels['ch19'].cc)
+#getbytes(channels['ch5'])
 '''flag = True
 while flag:
-    for channel in holder:
-        getbytes(holder[channel].cc)
+    for channel in channels:
+        getbytes(channels[channel].cc)
     flag = False'''
 
-#print(holder['ch39'].checkme)
-
-
-getFaderlvl(holder['ch5'])
+#print(channels['ch39'].checkme)
