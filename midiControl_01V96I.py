@@ -1,7 +1,7 @@
 from distutils.log import info
 import string
-import sys
-import os
+#import sys
+#import os
 import time
 from tokenize import String
 import pygame as pg
@@ -10,12 +10,14 @@ import csv
 from warnings import catch_warnings
 
 class Connection():
+    """Connection is a class object that can access a midi device input and output"""
     input = pygame.midi.Input
     output = pygame.midi.Output
 
     
         
     def __init__(self, device):
+        """When creating a connection object pass in the midi device input and output ports as a tuple to create the connections"""
         (input_id,output_id) = device
         self.input = pygame.midi.Input(input_id)
         self.output = pygame.midi.Output(output_id)
@@ -46,6 +48,7 @@ def _print_device_info():
         )
 #print_device_info()
 
+##--------return Midi Input and Output ports--------##
 '''finds the mixing desk in the midi interfaces'''
 def find_01V96i_desk():
     pygame.midi.init()
@@ -106,7 +109,7 @@ def input_main(device_id=None):
 
 
 ##--------main output device selection--------##
-    def output_main(device_id=None):
+    '''def output_main(device_id=None):
         pg.init()
         pygame.midi.init()
 
@@ -118,7 +121,7 @@ def input_main(device_id=None):
             port = device_id
 
         print(f"using output_id :{port}:")
-        midi_out = pygame.midi.Output(port, 0)
+        midi_out = pygame.midi.Output(port, 0)'''
 
 
 
@@ -132,9 +135,16 @@ with open('METER_DATA.csv','r')as csv_file:
 
 ##--------create channel objects--------##
 class Channel:
+    """The channel object is used to store input channel paramters for each channel.
+    Channels are accessed primarily through the cc as this is unique to each input channel and names can be duplicated."""
     cc = int
+    """input channel"""
     name = string
-    faderVal = hex
+    """channel name"""
+    faderVal = int
+    """current fader position (0-1023"""
+    faderOn = int
+    """channel On or Off"""
 
     def __init__(self, cc):
         stripped_cc = cc[2:]
@@ -147,6 +157,7 @@ class Channel:
     
     def __faderRead__(self):
         self.faderLevel = int(self.faderLevel)
+
 def createChannels(numberOfChannels: int):
     for i in range(numberOfChannels):
         instanceIDs.append('ch'+str(i))
@@ -155,13 +166,19 @@ def createChannels(numberOfChannels: int):
 ##--------fader control--------##
 def getbytes(cc):
     values = bytearray
-    values = [0x00,0x00,0x0,0x11]
+    level = input('Fader Value (0-1023)')
+    level = int(level) % 1024
+    dmod = divmod(level,128)
+    byte1 = dmod[1]
+    byte2 = dmod[0]
+    values = [0x00,0x00,byte2,byte1]
     setFaderlvl(cc,values)
 
 def setFaderlvl(cc,values):
     pygame.midi.init()
     bytes = bytearray
     bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,cc,values[0],values[1],values[2],values[3],0xF7]
+    print(bytes)
     try:
         connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
     except(pygame.midi.MidiException):
@@ -175,12 +192,16 @@ def getFaderlvl(cc):
     message = []
     reading = False
     for event in connection.input.read(256):
-        for byte in event[1]:
-            if event[0][0] == 0xf0:
+        for byte in event[0]:
+            if byte == 0xf0:
                 if not reading:
                     message = [event[0][0]]
                     reading = True
-                else:
+            elif byte == 0xf7 and reading:
+                if len(message) > 12:
+                    print(message)
+                reading = False
+            elif reading:
                     message.append(byte)
     
     
@@ -194,11 +215,14 @@ createChannels(40)
 holder = {name: Channel(cc=name) for name in instanceIDs}
 #print(holder['ch19'].cc)
 
-getbytes(holder['ch0'].cc)
-flag = True
+getbytes(holder['ch5'].cc)
+'''flag = True
 while flag:
     for channel in holder:
         getbytes(holder[channel].cc)
+    flag = False'''
 
-    print(holder['ch39'].checkme)
-    flag = False
+#print(holder['ch39'].checkme)
+
+
+getFaderlvl(holder['ch5'].cc)
