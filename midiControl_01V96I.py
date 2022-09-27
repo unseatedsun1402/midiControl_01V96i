@@ -157,6 +157,8 @@ class Channel:
     
     def __faderRead__(self):
         self.faderLevel = int(self.faderLevel)
+    
+
 
 def createChannels(numberOfChannels: int):
     for i in range(numberOfChannels):
@@ -164,7 +166,7 @@ def createChannels(numberOfChannels: int):
     print(instanceIDs)
 
 ##--------fader control--------##
-def getbytes(cc):
+def getbytes(self):
     values = bytearray
     level = input('Fader Value (0-1023)')
     level = int(level) % 1024
@@ -172,21 +174,21 @@ def getbytes(cc):
     byte1 = dmod[1]
     byte2 = dmod[0]
     values = [0x00,0x00,byte2,byte1]
-    setFaderlvl(cc,values)
+    setFaderlvl(self,values)
 
-def setFaderlvl(cc,values):
+def setFaderlvl(self,values):
     pygame.midi.init()
     bytes = bytearray
-    bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,cc,values[0],values[1],values[2],values[3],0xF7]
+    bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,self.cc,values[0],values[1],values[2],values[3],0xF7]
     print(bytes)
     try:
         connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
     except(pygame.midi.MidiException):
         print('failed')
 
-def getFaderlvl(cc):
+def getFaderlvl(self):
     bytes = bytearray
-    bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,cc,0xF7]
+    bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,self.cc,0xF7]
     connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
     time.sleep(0.05)
     message = []
@@ -203,8 +205,36 @@ def getFaderlvl(cc):
                 reading = False
             elif reading:
                     message.append(byte)
-    
-    
+
+##--------Aux Controls--------##
+def aux():
+    """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
+    pattern = {
+        "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23],
+        "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23]
+    }
+
+    def getAuxLevel(self):
+        bytes = pattern["request"]
+        bytes.append(0x02)
+        bytes.append(self.cc)
+        bytes.append(0xf7)
+        connection.output.write_sys_ex(when=pygame.midi.time(),msg=bytes)
+        time.sleep(0.05)
+        message = []
+        reading = False
+        for event in connection.input.read(256):
+            for byte in event[0]:
+                if byte == 0xf0:
+                    if not reading:
+                        message = [event[0][0]]
+                        reading = True
+                elif byte == 0xf7 and reading:
+                    if len(message) > 12:
+                        print(message)
+                    reading = False
+                elif reading:
+                        message.append(byte)
 
     
 
@@ -215,7 +245,7 @@ createChannels(40)
 holder = {name: Channel(cc=name) for name in instanceIDs}
 #print(holder['ch19'].cc)
 
-getbytes(holder['ch5'].cc)
+getbytes(holder['ch5'])
 '''flag = True
 while flag:
     for channel in holder:
@@ -225,4 +255,4 @@ while flag:
 #print(holder['ch39'].checkme)
 
 
-getFaderlvl(holder['ch5'].cc)
+getFaderlvl(holder['ch5'])
