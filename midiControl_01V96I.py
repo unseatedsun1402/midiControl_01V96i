@@ -206,18 +206,21 @@ def getFaderlvl(self):
             elif reading:
                     message.append(byte)
 
-##--------Aux Controls--------##
-def aux():
+##--------Aux Class--------##
+class Aux:
     """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
-    pattern = {
-        "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23],
-        "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23]
-    }
+    pattern = {}
+    
+    def __init__(self,cc):
+        pattern = {
+        "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,cc],
+        "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,cc]
+        }
 
-    def getAuxLevel(self):
-        bytes = pattern["request"]
-        bytes.append(0x02)
+    def getLevel(self,channel):
+        bytes = self.pattern["request"]
         bytes.append(self.cc)
+        bytes.append(channel.cc)
         bytes.append(0xf7)
         connection.output.write_sys_ex(when=pygame.midi.time(),msg=bytes)
         time.sleep(0.05)
@@ -236,16 +239,24 @@ def aux():
                 elif reading:
                         message.append(byte)
 
+##--------Create Auxes-------##
+def createAuxes(rng):
+    for i in range(rng):
+        instanceIDs.append('aux'+str(i))
+    #print(instanceIDs)
+
     
 
 instanceIDs = []
-connection = Connection(find_01V96i_desk())
-#establish_connection(find_01V96i_desk())
-createChannels(40)
-holder = {name: Channel(cc=name) for name in instanceIDs}
-#print(holder['ch19'].cc)
+auxIDs = []
 
-getbytes(holder['ch5'])
+createChannels(40)
+createAuxes(8)
+channels = {name: Channel(cc=name) for name in instanceIDs}
+auxes = {name: Aux(name=name) for name in auxIDs}
+#print(holder['ch19'].cc)
+connection = Connection(find_01V96i_desk())
+getbytes(channels['ch5'])
 '''flag = True
 while flag:
     for channel in holder:
@@ -255,4 +266,4 @@ while flag:
 #print(holder['ch39'].checkme)
 
 
-getFaderlvl(holder['ch5'])
+getFaderlvl(channels['ch5'])
