@@ -205,39 +205,23 @@ def getFaderlvl(self):
             elif reading:
                     message.append(byte)
 
-<<<<<<< HEAD
-##--------Aux Class--------##
-class Aux:
-    """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
-    pattern = {}
-    
-    def __init__(self,cc):
-        pattern = {
-        "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,cc],
-        "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,cc]
-        }
-
-    def getLevel(self,channel):
-        bytes = self.pattern["request"]
-=======
 ##--------Aux Controls--------##
 class Aux():
-    
-    
 
     def __init__(self,name):
         self.cc = int(name[2:])
         """To change/request a parameter follow the end of the bytearray with the cc and data (if required)"""
         self.pattern = {
             "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,self.cc],
-            "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,self.cc]
+            "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,self.cc],
+            "fader change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x39,0x00,self.cc],
+            "fader request":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x39,0x00,self.cc]
         }
         self.name = "aux" + str(self.cc//3)
 
-    def getAuxLevel(self):
-        bytes = pattern["request"]
+    def getSendLevel(self,channel):
+        bytes = self.pattern["request"]
         bytes.append(0x02)
->>>>>>> f6730fcc31a7217628dcd85cc659a1b6ca853d98
         bytes.append(self.cc)
         bytes.append(channel.cc)
         bytes.append(0xf7)
@@ -258,33 +242,15 @@ class Aux():
                 elif reading:
                         message.append(byte)
 
-<<<<<<< HEAD
-##--------Create Auxes-------##
-def createAuxes(rng):
-    for i in range(rng):
-        instanceIDs.append('aux'+str(i))
-    #print(instanceIDs)
-=======
 
 def createAuxChannels(numberOfChannels: int):
     for i in range(numberOfChannels):
         auxIDs.append('cc'+str(i))
->>>>>>> f6730fcc31a7217628dcd85cc659a1b6ca853d98
 
     
 
 instanceIDs = []
 auxIDs = []
-<<<<<<< HEAD
-
-createChannels(40)
-createAuxes(8)
-channels = {name: Channel(cc=name) for name in instanceIDs}
-auxes = {name: Aux(name=name) for name in auxIDs}
-#print(holder['ch19'].cc)
-connection = Connection(find_01V96i_desk())
-getbytes(channels['ch5'])
-=======
 connection = Connection(find_01V96i_desk())
 #establish_connection(find_01V96i_desk())
 createChannels(40)
@@ -293,22 +259,15 @@ channels = {name: Channel(name=name) for name in instanceIDs}
 auxChannels = {name: Aux(name=name) for name in auxIDs}
 print(auxChannels['cc3'].pattern['request'])
 print(auxChannels['cc15'].name)
+auxChannels['cc3'].getSendLevel(channels['ch0'])
 
 
 #print(channels['ch19'].cc)
 #getbytes(channels['ch5'])
->>>>>>> f6730fcc31a7217628dcd85cc659a1b6ca853d98
 '''flag = True
 while flag:
     for channel in channels:
         getbytes(channels[channel].cc)
     flag = False'''
 
-<<<<<<< HEAD
-#print(holder['ch39'].checkme)
-
-
-getFaderlvl(channels['ch5'])
-=======
 #print(channels['ch39'].checkme)
->>>>>>> f6730fcc31a7217628dcd85cc659a1b6ca853d98
