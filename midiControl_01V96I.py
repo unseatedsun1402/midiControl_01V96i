@@ -151,11 +151,37 @@ class Channel:
         self.name = name
         self.checkme = 'awesome {}'.format(self.name)
     
-    def __setValue__(self, val):
-        self.faderVal = val
+    def __setFaderValue__(self, channel, value):
+        (byte2,byte1) = value
+        pygame.midi.init()
+        bytes = bytearray
+        bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,channel.cc,0x00,0x00,byte2,byte1,0xF7]
+        print(bytes)
+        try:
+            connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+            self.faderVal = value
+        except(pygame.midi.MidiException):
+            print('failed')
     
-    def __faderRead__(self):
-        self.faderLevel = int(self.faderLevel)
+    def __faderRead__(self,channel):
+        bytes = bytearray
+        bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,channel.cc,0xF7]
+        connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+        time.sleep(0.05)
+        message = []
+        reading = False
+        for event in connection.input.read(256):
+            for byte in event[0]:
+                if byte == 0xf0:
+                    if not reading:
+                        message = [event[0][0]]
+                        reading = True
+                elif byte == 0xf7 and reading:
+                    if len(message) > 12:
+                        print(message)
+                    reading = False
+                elif reading:
+                        message.append(byte)
     
 
 
@@ -215,14 +241,13 @@ class Aux():
             "change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,self.cc],
             "request":[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x23,self.cc],
             "fader change":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x39,0x00,self.cc],
-            "fader request":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x39,0x00,self.cc]
+            "fader request":[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x39,0x00,self.cc],
+            "default":[0x06,0x55]
         }
         self.name = "aux" + str(self.cc//3)
 
     def getSendLevel(self,channel):
         bytes = self.pattern["request"]
-        bytes.append(0x02)
-        bytes.append(self.cc)
         bytes.append(channel.cc)
         bytes.append(0xf7)
         connection.output.write_sys_ex(when=pygame.midi.time(),msg=bytes)
@@ -241,6 +266,22 @@ class Aux():
                     reading = False
                 elif reading:
                         message.append(byte)
+    def sendLevel(self,channel,value):
+        pygame.midi.init()
+        (byte2,byte1) = value
+        bytes = bytearray
+        bytes = self.pattern['change']
+        bytes.append(channel.cc)
+        bytes.append(0x00)
+        bytes.append(0x00)
+        bytes.append(byte2)
+        bytes.append(byte1)
+        bytes.append(0xf7)
+        #print(bytes)
+        try:
+            connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+        except(pygame.midi.MidiException):
+            print('failed')
 
 
 def createAuxChannels(numberOfChannels: int):
@@ -258,8 +299,9 @@ createAuxChannels(24)
 channels = {name: Channel(name=name) for name in instanceIDs}
 auxChannels = {name: Aux(name=name) for name in auxIDs}
 print(auxChannels['cc3'].pattern['request'])
-print(auxChannels['cc15'].name)
-auxChannels['cc3'].getSendLevel(channels['ch0'])
+print(auxChannels['cc2'].name)
+auxChannels['cc2'].getSendLevel(channels['ch0'])
+print(0xC + 0x69)
 
 
 #print(channels['ch19'].cc)
