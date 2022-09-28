@@ -67,61 +67,7 @@ def find_01V96i_desk():
     pygame.midi.quit
     return(input_id,output_id)
 
-##-------select main input device--------##
-def input_main(device_id=None):
-    pg.init()
 
-    pygame.midi.init()
-
-    _print_device_info()
-
-    if device_id is None:
-        input_id = pygame.midi.get_default_input_id()
-    else:
-        input_id = device_id
-
-    print(f"using input_id :{input_id}:")
-    i = pygame.midi.Input(input_id)
-
-    pg.display.set_mode((1, 1))
-
-    going = True
-    while going:
-        events = pygame.event.get()
-        for e in events:
-            if e.type in [pg.QUIT]:
-                going = False
-            if e.type in [pg.KEYDOWN]:
-                going = False
-            if e.type in [pygame.midi.MIDIIN]:
-                print(e)
-
-        if i.poll():
-            midi_events = i.read(10)
-            # convert them into pygame events.
-            midi_evs = pygame.midi.midis2events(midi_events, i.device_id)
-
-            for m_e in midi_evs:
-                pygame.event.post(m_e)
-
-    del i
-    pygame.midi.quit()
-
-
-##--------main output device selection--------##
-    '''def output_main(device_id=None):
-        pg.init()
-        pygame.midi.init()
-
-        _print_device_info()
-
-        if device_id is None:
-            port = pygame.midi.get_default_output_id()
-        else:
-            port = device_id
-
-        print(f"using output_id :{port}:")
-        midi_out = pygame.midi.Output(port, 0)'''
 
 
 
@@ -150,12 +96,16 @@ class Channel:
         self.cc = int(name[2:])
         self.name = name
         self.checkme = 'awesome {}'.format(self.name)
+        self.pattern = {'meter':[0xf0,0x43,0x30,0x3e,0x1a,0x21,0x00,0x01,self.cc,0x00,0x01],
+                    'fader':[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,self.cc]}
     
-    def __setFaderValue__(self, channel, value):
+    def setFaderValue(self, channel, value):
         (byte2,byte1) = value
         pygame.midi.init()
-        bytes = bytearray
-        bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,channel.cc,0x00,0x00,byte2,byte1,0xF7]
+        bytes = list(self.pattern['fader'])
+        bytes.append(byte2)
+        bytes.append(byte1)
+        bytes.append(0xf7)
         print(bytes)
         try:
             connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
@@ -163,9 +113,10 @@ class Channel:
         except(pygame.midi.MidiException):
             print('failed')
     
-    def __faderRead__(self,channel):
+    def getFader(self):
         bytes = bytearray
-        bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,channel.cc,0xF7]
+        bytes = list(self.pattern['fader'])
+        bytes.append(0xf7)
         connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
         time.sleep(0.05)
         message = []
@@ -178,10 +129,34 @@ class Channel:
                         reading = True
                 elif byte == 0xf7 and reading:
                     if len(message) > 12:
-                        print(message)
+                        return(message[11],message[12])
                     reading = False
                 elif reading:
                         message.append(byte)
+    
+    def getMeter(self):
+        bytes = []
+        bytes = list(self.pattern['meter'])
+        bytes.append(0xf7)
+        connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+        time.sleep(0.05)
+        message = []
+        reading = False
+        for event in connection.input.read(256):
+            for byte in event[0]:
+                if byte == 0xf0:
+                    if not reading:
+                        message = [event[0][0]]
+                        reading = True
+                elif byte == 0xf7 and reading:
+                    if len(message) > 10:
+                        #connection.input.close()
+                        return(message[9],message[10])
+                    reading = False
+                elif reading and len(message) <15:
+                        message.append(byte)
+                else: reading = False
+        #connection.input.close()
     
 
 
@@ -190,46 +165,6 @@ def createChannels(numberOfChannels: int):
         instanceIDs.append('ch'+str(i))
     print(instanceIDs)
 
-##--------fader control--------##
-def getbytes(self):
-    values = bytearray
-    level = input('Fader Value (0-1023)')
-    level = int(level) % 1024
-    dmod = divmod(level,128)
-    byte1 = dmod[1]
-    byte2 = dmod[0]
-    values = [0x00,0x00,byte2,byte1]
-    setFaderlvl(self,values)
-
-def setFaderlvl(self,values):
-    pygame.midi.init()
-    bytes = bytearray
-    bytes = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,self.cc,values[0],values[1],values[2],values[3],0xF7]
-    print(bytes)
-    try:
-        connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
-    except(pygame.midi.MidiException):
-        print('failed')
-
-def getFaderlvl(self):
-    bytes = bytearray
-    bytes = [0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,self.cc,0xF7]
-    connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
-    time.sleep(0.05)
-    message = []
-    reading = False
-    for event in connection.input.read(256):
-        for byte in event[0]:
-            if byte == 0xf0:
-                if not reading:
-                    message = [event[0][0]]
-                    reading = True
-            elif byte == 0xf7 and reading:
-                if len(message) > 12:
-                    print(message)
-                reading = False
-            elif reading:
-                    message.append(byte)
 
 ##--------Aux Controls--------##
 class Aux():
@@ -247,7 +182,7 @@ class Aux():
         self.name = "aux" + str(self.cc//3)
 
     def getSendLevel(self,channel):
-        bytes = self.pattern["request"]
+        bytes = list(self.pattern["request"])
         bytes.append(channel.cc)
         bytes.append(0xf7)
         connection.output.write_sys_ex(when=pygame.midi.time(),msg=bytes)
@@ -270,7 +205,7 @@ class Aux():
         pygame.midi.init()
         (byte2,byte1) = value
         bytes = bytearray
-        bytes = self.pattern['change']
+        bytes = list(self.pattern['change'])
         bytes.append(channel.cc)
         bytes.append(0x00)
         bytes.append(0x00)
@@ -298,11 +233,16 @@ createChannels(40)
 createAuxChannels(24)
 channels = {name: Channel(name=name) for name in instanceIDs}
 auxChannels = {name: Aux(name=name) for name in auxIDs}
-print(auxChannels['cc3'].pattern['request'])
-print(auxChannels['cc2'].name)
+#print(auxChannels['cc3'].pattern['request'])
+#print(auxChannels['cc2'].name)
 auxChannels['cc2'].getSendLevel(channels['ch0'])
-print(0xC + 0x69)
 
+#for channel in channels:
+    #print(channels[channel].getFader())
+
+#while True:
+for channel in channels:
+    print(channels[channel].getMeter())
 
 #print(channels['ch19'].cc)
 #getbytes(channels['ch5'])
