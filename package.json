@@ -1,0 +1,23 @@
+{
+  "name": "midicontrol_01v96i",
+  "version": "1.0.0",
+  "description": "Python program using pygame to connect to Yamaha 01V96i Digital mixing desk and provide control over Midi for various parameters",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unseatedsun1402/midiControl_01V96i.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/unseatedsun1402/midiControl_01V96i/issues"
+  },
+  "homepage": "https://github.com/unseatedsun1402/midiControl_01V96i#readme",
+  "dependencies": {
+    "jquery": "^3.6.1"
+  }
+}

@@ -31,6 +31,7 @@ fs.readFile(__dirname + "/index.html")
         });
     })
     .catch(err => {
+        res.writeHead(400)
         console.error(`Could not read index.html file: ${err}`);
         process.exit(1);
     });

@@ -9,6 +9,8 @@ import pygame.midi
 import csv
 from warnings import catch_warnings
 
+from pyparsing import Char
+
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
     input = pygame.midi.Input
@@ -97,7 +99,9 @@ class Channel:
         self.name = name
         self.checkme = 'awesome {}'.format(self.name)
         self.pattern = {'meter':[0xf0,0x43,0x30,0x3e,0x1a,0x21,0x00,0x01,self.cc,0x00,0x01],
-                    'fader':[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,self.cc]}
+                    'fader':[0xF0,0x43,0x30,0x3E,0x7F,0x01,0x1C,0x00,self.cc],
+                    'name':[0xF0,0x43,0x30,0x3E,0x1A,0x02,0x04,0x04,self.cc]
+                    }
     
     def setFaderValue(self, channel, value):
         (byte2,byte1) = value
@@ -157,6 +161,36 @@ class Channel:
                         message.append(byte)
                 else: reading = False
         #connection.input.close()
+
+    def getName(self):
+        bytes = []
+        bytes = list(self.pattern['name'])
+        bytes.append(0xf7)
+        name = String
+        for i in range(15):
+            connection.output.write_sys_ex(msg= bytes,when= pygame.midi.time())
+            bytes[7] += 1
+            time.sleep(0.1)
+            message = []
+            reading = False
+            for event in connection.input.read(256):
+                for byte in event[0]:
+                    if byte == 0xf0:
+                        if not reading:
+                            message = [event[0][0]]
+                            reading = True
+                    elif byte == 0xf7 and reading and len(message) > 6:
+                        if message[6] == 4:
+                            #connection.input.close()
+                            print(chr(message[len(message)-1]))
+                            reading = False
+
+                        else:
+                            pass
+                    elif reading and len(message) <15:
+                            message.append(byte)
+                    else: reading = False
+
     
 
 
@@ -241,9 +275,10 @@ auxChannels['cc2'].getSendLevel(channels['ch0'])
     #print(channels[channel].getFader())
 
 #while True:
-for channel in channels:
-    print(channels[channel].getMeter())
+#for channel in channels:
+#    print(channels[channel].getMeter())
 
+print(channels['ch6'].getName())
 #print(channels['ch19'].cc)
 #getbytes(channels['ch5'])
 '''flag = True
