@@ -9,7 +9,55 @@
 
 <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,700" rel="stylesheet" type="text/css">
 <script src="main.js"></script>
-
+<style type="text/css">
+    
+    body {
+        background-color:#333333;
+        color:#A9ABAB;
+        font-family: 'Open Sans',sans-serif;
+        font-size: 1em;
+        text-align: center;
+        margin:2px;
+        user-select: none;
+        cursor: default;
+        }
+   #trackSelect {
+        width:100%;
+        color:#A9ABAB;
+        background-color:#262626;
+        border: none;
+        font-size: 1.5em;
+        padding:3%;
+        -webkit-border-radius: 20px;
+        -moz-border-radius: 20px;
+        border-radius: 20px;
+        -webkit-appearance: none;
+        }
+    select option:first-child{
+        color: #555555;
+        font-style: italic;
+        }
+   #instructions {
+        display : block;
+        padding : 0% 10% 0% 10%;
+        }
+    .button:hover .mouseover {
+        visibility:visible;
+        }
+    .button:active .mouseover {
+        visibility:hidden;
+        pointer-events:all;
+        }
+    .button:active .shadow {
+        visibility: hidden;
+        }
+    .button:active .gloss {
+        visibility: hidden;
+        }
+    .button:active .active {
+        visibility: visible;
+        }  
+</style>
 </head>
 <div id="colWrap">
 
@@ -26,6 +74,7 @@
     Select yours from the dropdown list<br><br>
     </div>
 
-    <svg width="device-width" height="device-height">
-        <rect width="300" height="100" style="fill:rgb(25,25,25);stroke-width:3;stroke:rgb(0,0,0)"/>
+    <svg class="fader" width="20%" height="12.5%">
+        <rect width="100%" height="90%" style="fill:rgb(108, 107, 107);stroke-width:3;stroke:rgb(0,0,0)"/>
+        <line x1="50%" y1="90%" x2="50%" y2="0%" style="stroke:rgb(255,255,255);"/>
     </svg>
