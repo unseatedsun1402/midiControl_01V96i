@@ -340,8 +340,27 @@ while flag:
     flag = False'''
 
 #print(channels['ch39'].checkme)
+##--------incomming event handler--------##
+class SysexEvent:
+    def __init__(self,msg):
+        self.msg = msg
+    
+    def classify(self,msg):
+        patt = []
+        for i in range(8):
+            patt.append(msg[i])
+        try:
+            print(patterns[tuple(patt)],"ch"+ str(msg[8]))
+            self.type = patterns[tuple(patt)].index()
+        except KeyError:
+            print("unkown",msg)
+            hexval = []
+            for each in patt:
+                hexval.append(hex(each))
+            #print(hexval)
 
-##--------listen to the desk--------##
+
+##--------listens to the desk--------##
 def changeListener():
     def listen():
         while True:
@@ -361,17 +380,7 @@ def changeListener():
                         elif reading:
                                 message.append(byte)
     while True:
-        parameterChange = listen()
-        patt = []
-        for i in range(8):
-            patt.append(parameterChange[i])
-        try:
-            print(patterns[tuple(patt)],"ch"+ str(parameterChange[8]))
-        except KeyError:
-            print("unkown",parameterChange)
-            hexval = []
-            for each in patt:
-                hexval.append(hex(each))
-            print(hexval)
+        event = SysexEvent(listen())
+        
 
 changeListener()
