@@ -26,8 +26,10 @@ class Connection():
         self.output = pygame.midi.Output(output_id)
 
 patterns = {
-        (240,67,16,62,26,4,92,0):"channel on",
+        (240, 67, 16, 62, 127, 1, 79,0):"master fader",
+        (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1A,0x00):"channel on",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1b,0x00):"channel pan",
+        (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1c,0x00):"fader",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1c,0x00):"fader",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1c,0x01):"fader fade",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1d,0x00):"channel attenuator",
@@ -56,6 +58,23 @@ patterns = {
         (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,0x15):"aux 8 on",
         (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,0x16):"aux 8 pre",
         (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x23,0x17):"aux 8 lvl",
+        (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1F,0x01):"input compressor on",
+        (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1E,0x00):"input gate on",
+        (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x20,0x0F):"input eq on",
+        (240, 67, 16, 62, 26, 4, 92, 0):"aux bus on",
+        (240, 67, 16, 62, 26, 4, 91, 0):"mix bus on",
+        (240, 67, 16, 62, 26, 4, 9, 23):"layer select",
+        (240, 67, 16, 62, 26, 3, 46, 0):"solo ch on",
+        (240, 67, 16, 62, 26, 3, 46, 1):"cue/solo safe",
+        (240, 67, 16, 62, 26, 3, 46, 2):"cue/solo total",
+        (240, 67, 16, 62, 26, 4, 48, 0):"solo local",
+        (240, 67, 16, 62, 26, 4, 48, 1):"solo global",
+        (240, 67, 16, 62, 26, 4, 48, 2):"solo inout local",
+        (240, 67, 16, 62, 26, 4, 48, 3):"solo inout global",
+        (240, 67, 16, 62, 26, 3, 47, 0):"solo master on",
+        (240, 67, 16, 62, 26, 3, 47, 1):"solo master on bk",
+        (240, 67, 16, 62, 26, 3, 47, 2):"solo master total on",
+        (240, 67, 16, 62, 26, 4, 9, 24):"select channel"
     }
 
     
@@ -344,14 +363,14 @@ def changeListener():
     while True:
         parameterChange = listen()
         patt = []
-        for i in range(7):
+        for i in range(8):
             patt.append(parameterChange[i])
         try:
-            print(patterns[tuple(patt)])
+            print(patterns[tuple(patt)],"ch"+ str(parameterChange[8]))
         except KeyError:
             print("unkown",parameterChange)
             hexval = []
-            for each in parameterChange:
+            for each in patt:
                 hexval.append(hex(each))
             print(hexval)
 
