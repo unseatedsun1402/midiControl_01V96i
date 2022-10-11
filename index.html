@@ -1,10 +1,10 @@
+<html  lang="en">
 <head>
+    <meta charset="utf-8">
     <title> Monitor Control</title>
-    
-    <meta charset="utf-8" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=0" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,700" rel="stylesheet" type="text/css">
     <style type="text/css">
         
@@ -89,7 +89,7 @@
         <div id="output">
             <element id="hardwareSendSVG">
                 <svg version="1.1" class="faderSvg" display="block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 1 320 47" xml:space="preserve">
-                    <rect rect x="0" fill="#333333" width="320" height="36"/>
+                    <rect rect x="0" fill="#777777" width="300" height="75"/>
                 </svg>
             </element>
 
@@ -99,3 +99,16 @@
         </div>
     </div>
 </body>
+
+<script type="text/javascript">
+    function mouseUpHandler(event){mouseDown = 0;}
+    function mouseDownHandler(event, target){mouseDown = 1;}
+    function mouseLeaveHandler(event){mouseDown = 0;}   
+    function mouseMoveHandler(event){
+        if (mouseDown != 1){ return; }
+        else{
+            console.log(MouseEvent);
+        }
+    ;}
+</script>
+</html>
