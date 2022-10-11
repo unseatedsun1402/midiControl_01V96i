@@ -3,11 +3,13 @@ const fs = require('fs').promises;
 //const { isBuffer } = require('util');
 const host = 'localhost';
 const port = 8000;
-//const {spawn} = require('child_process');
 
-//sconst ver = spawn('python',['--version.py']);
-//ver.stdout.on('data', (data)=>{
-//    console.log('stdout: ${data}')
+//--------connect to python script--------
+const {spawn} = require('child_process');
+
+const proc = spawn('python',['midiControl_01V96I.py']);
+proc.stdout.on('data', (data)=>{
+    console.log('stdout: ${data}')});
 //});
 //ver.stderr.on('data',(data)=>{
 //    console.error('stderr: ${data}')
