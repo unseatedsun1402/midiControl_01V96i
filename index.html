@@ -9,7 +9,7 @@
     <style type="text/css">
         
         body {
-            background-color:#333333;
+            background-color:#0c1e2a;
             color:#A9ABAB;
             font-family: 'Open Sans',sans-serif;
             font-size: 1em;
@@ -22,7 +22,7 @@
        #trackSelect {
             width:100%;
             color:#A9ABAB;
-            background-color:#262626;
+            background-color:#14151a;
             border: none;
             font-size: 1.5em;
             padding:3%;
@@ -32,7 +32,7 @@
             -webkit-appearance: none;
             }
         select option:first-child{
-            color: #555555;
+            color: #14151a;
             font-style: italic;
             }
        #instructions {
@@ -89,12 +89,26 @@
         <div id="output">
             <element id="hardwareSendSVG">
                 <svg version="1.1" class="faderSvg" display="block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 1 320 47" xml:space="preserve">
-                    <rect rect x="0" fill="#777777" width="300" height="75"/>
+                    <rect x="0" fill="#c4a668" width="75" height="30"/>
                 </svg>
             </element>
 
-        </div>
-        <div id="channels">
+            <element id="channelSendSVG">
+                <svg version="1.1" class="faderSvg" display="block" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 1 320 47" xml:space="preserve">
+                    <g id="knob" transform="translate(100,0)">
+                        <defs>
+                            <linearGradient id="whiteKnobGradient" gradientTransform="rotate(90)">
+                                <stop offset="2%" stop-color="#a4a3a1" />
+                                <stop offset="33%" stop-color="#f0efed" />
+                                <stop offset="95%" stop-color="#a4a3a1" />
+                            </linearGradient>
+                        </defs>
+
+                        <rect x="0" fill="url('#whiteKnobGradient')" width="75" height="30"/>
+                        <line x1="38" y1="30" x2="38" y2="0" stroke="#14151a"/>
+                    </g>
+                </svg>
+            </element>
 
         </div>
     </div>
