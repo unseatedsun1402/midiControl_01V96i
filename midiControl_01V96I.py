@@ -9,6 +9,8 @@ import pygame as pg
 import pygame.midi
 import csv
 from warnings import catch_warnings
+from tkinter import *
+from tkinter import ttk
 
 from pyparsing import Char
 
@@ -22,8 +24,17 @@ class Connection():
     def __init__(self, device):
         """When creating a connection object pass in the midi device input and output ports as a tuple to create the connections"""
         (input_id,output_id) = device
-        self.input = pygame.midi.Input(input_id)
-        self.output = pygame.midi.Output(output_id)
+        try:
+            self.input = pygame.midi.Input(input_id)
+            self.output = pygame.midi.Output(output_id)
+        except:
+            root = Tk()
+            frm = ttk.Frame(root, padding=10)
+            frm.grid()
+            ttk.Label(frm, text="Device not found. Please check device connections and drivers are up to date.").grid(column=0, row=0)
+            ttk.Button(frm, text="Quit", command=exit).grid(column=1, row=0)
+            root.mainloop()
+
 
 patterns = {
         (240, 67, 16, 62, 127, 1, 79,0):"master fader",
