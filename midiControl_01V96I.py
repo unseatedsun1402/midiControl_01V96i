@@ -1,7 +1,8 @@
 from ast import pattern
 from distutils.log import info
 import string
-#import sys
+import sys
+from sys import argv
 #import os
 import time
 from tokenize import String
@@ -39,6 +40,7 @@ class Connection():
 patterns = {
         (240, 67, 16, 62, 127, 1, 79,0):"master fader",
         (0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1A,0x00):"channel on",
+        (240, 67, 16, 62, 26, 4, 90, 0):"channel on",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1b,0x00):"channel pan",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1c,0x00):"fader",
         (0xf0,0x43,0x10,0x3e,0x7f,0x01,0x1c,0x00):"fader",
@@ -355,14 +357,16 @@ while flag:
 class SysexEvent:
     def __init__(self,msg):
         self.msg = msg
+        self.classify()
     
-    def classify(self,msg):
+    def classify(self):
+        msg = self.msg
         patt = []
         for i in range(8):
             patt.append(msg[i])
         try:
             print(patterns[tuple(patt)],"ch"+ str(msg[8]))
-            self.type = patterns[tuple(patt)].index()
+            self.type = patterns[tuple(patt)]
         except KeyError:
             print("unkown",msg)
             hexval = []
@@ -392,6 +396,8 @@ def changeListener():
                                 message.append(byte)
     while True:
         event = SysexEvent(listen())
+        argv.clear()
         
-
+argv.clear()
+print("Args ",argv)
 changeListener()
