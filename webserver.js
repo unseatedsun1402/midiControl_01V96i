@@ -7,9 +7,9 @@ const port = 8000;
 //--------connect to python script--------
 const {spawn} = require('child_process');
 
-const proc = spawn('python',['midiControl_01V96I.py']);
-proc.stdout.on('data', (data)=>{
-    console.log('stdout: ${data}')});
+//const proc = spawn('test.py',[]);
+//proc.stdout.on('data', (data)=>{
+ //   console.log('stdout: ${data}')});
 //});
 //ver.stderr.on('data',(data)=>{
 //    console.error('stderr: ${data}')
