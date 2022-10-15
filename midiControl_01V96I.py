@@ -13,8 +13,6 @@ from warnings import catch_warnings
 from tkinter import *
 from tkinter import ttk
 
-from pyparsing import Char
-
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
     input = pygame.midi.Input
@@ -374,14 +372,26 @@ class SysexEvent:
                 hexval.append(hex(each))
             #print(hexval)
 
+class InStream:
+    def __init__(self):
+        arguments = []
+        arguments = argv
+    
+    def clear(self):
+        self.arguments = []
+    
+    def update(self):
+        self.arguments = argv
 
 ##--------listens to the desk--------##
 def changeListener():
+    changes = False
     def listen():
         while True:
             message = []
             reading = False
             if connection.input.poll():
+                changes = True
                 for event in connection.input.read(256):
                     for byte in event[0]:
                         if byte == 0xf0:
@@ -389,15 +399,17 @@ def changeListener():
                                 message = [event[0][0]]
                                 reading = True
                         elif byte == 0xf7 and reading:
-                            if len(message) > 12:
+                            if len(message) > 8:
                                 return(message)
+                                changes = False
                             reading = False
                         elif reading:
                                 message.append(byte)
+    def inStream():
+        print(stdIO.arguments)
+
     while True:
         event = SysexEvent(listen())
-        argv.clear()
         
-argv.clear()
-print("Args ",argv)
+stdIO = InStream
 changeListener()
