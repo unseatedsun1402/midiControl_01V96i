@@ -1,5 +1,6 @@
 from ast import pattern
-from distutils.log import info
+from distutils.log import error, info
+from errno import errorcode
 import string
 import sys
 from sys import argv
@@ -13,10 +14,12 @@ from warnings import catch_warnings
 from tkinter import *
 from tkinter import ttk
 
+sys.stdout.flush()
+##--------Starting Variables-------##
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
-    input = pygame.midi.Input
-    output = pygame.midi.Output
+    #input = pygame.midi.Input
+    #output = pygame.midi.Output
 
     
         
@@ -27,6 +30,8 @@ class Connection():
             self.input = pygame.midi.Input(input_id)
             self.output = pygame.midi.Output(output_id)
         except:
+            errorcode(0)
+            error("Midi Device not Found")
             root = Tk()
             frm = ttk.Frame(root, padding=10)
             frm.grid()
@@ -321,95 +326,109 @@ def createAuxChannels(numberOfChannels: int):
         auxIDs.append('cc'+str(i))
 
     
-
+##-------- main --------
 instanceIDs = []
 auxIDs = []
-connection = Connection(find_01V96i_desk())
-#establish_connection(find_01V96i_desk())
-createChannels(40)
-createAuxChannels(24)
-channels = {name: Channel(name=name) for name in instanceIDs}
-auxChannels = {name: Aux(name=name) for name in auxIDs}
-#print(auxChannels['cc3'].pattern['request'])
-#print(auxChannels['cc2'].name)
-auxChannels['cc2'].getSendLevel(channels['ch0'])
 
-#for channel in channels:
-    #print(channels[channel].getFader())
+try:
+    connection = Connection(find_01V96i_desk())
 
-#while True:
-#for channel in channels:
-#    print(channels[channel].getMeter())
+    createChannels(40)
+    createAuxChannels(24)
+    channels = {name: Channel(name=name) for name in instanceIDs}
+    auxChannels = {name: Aux(name=name) for name in auxIDs}
 
-print(channels['ch6'].getName())
-#print(channels['ch19'].cc)
-#getbytes(channels['ch5'])
-'''flag = True
-while flag:
-    for channel in channels:
-        getbytes(channels[channel].cc)
-    flag = False'''
+    ##--------testing--------##
 
-#print(channels['ch39'].checkme)
-##--------incomming event handler--------##
-class SysexEvent:
-    def __init__(self,msg):
-        self.msg = msg
-        self.classify()
-    
-    def classify(self):
-        msg = self.msg
-        patt = []
-        for i in range(8):
-            patt.append(msg[i])
-        try:
-            print(patterns[tuple(patt)],"ch"+ str(msg[8]))
-            self.type = patterns[tuple(patt)]
-        except KeyError:
-            print("unkown",msg)
-            hexval = []
-            for each in patt:
-                hexval.append(hex(each))
-            #print(hexval)
+    def test():
+        if(argv>1):
+            print(arg)
+        return("Hello World")
 
-class InStream:
-    def __init__(self):
-        arguments = []
-        arguments = argv
-    
-    def clear(self):
-        self.arguments = []
-    
-    def update(self):
-        self.arguments = argv
+    #auxChannels['cc2'].getSendLevel(channels['ch0'])
+    #print(auxChannels['cc3'].pattern['request'])
+    #print(auxChannels['cc2'].name)
+    #for channel in channels:
+        #print(channels[channel].getFader())
+    #establish_connection(find_01V96i_desk())
+    #while True:
+    #for channel in channels:
+    #    print(channels[channel].getMeter())
 
-##--------listens to the desk--------##
-def changeListener():
-    changes = False
-    def listen():
-        while True:
-            message = []
-            reading = False
-            if connection.input.poll():
-                changes = True
-                for event in connection.input.read(256):
-                    for byte in event[0]:
-                        if byte == 0xf0:
-                            if not reading:
-                                message = [event[0][0]]
-                                reading = True
-                        elif byte == 0xf7 and reading:
-                            if len(message) > 8:
-                                return(message)
-                                changes = False
-                            reading = False
-                        elif reading:
-                                message.append(byte)
-    def inStream():
-        print(stdIO.arguments)
+    #print(channels['ch6'].getName())
+    #print(channels['ch19'].cc)
+    #getbytes(channels['ch5'])
+    '''flag = True
+    while flag:
+        for channel in channels:
+            getbytes(channels[channel].cc)
+        flag = False'''
 
-    while True:
-        event = SysexEvent(listen())
+    #print(channels['ch39'].checkme)
+
+
+    ##--------incomming event handler--------##
+    class SysexEvent:
+        def __init__(self,msg):
+            self.msg = msg
+            self.classify()
         
-stdIO = InStream
-changeListener()
+        def classify(self):
+            msg = self.msg
+            patt = []
+            for i in range(8):
+                patt.append(msg[i])
+            try:
+                print(patterns[tuple(patt)],"ch"+ str(msg[8]))
+                self.type = patterns[tuple(patt)]
+            except KeyError:
+                print("unkown",msg)
+                hexval = []
+                for each in patt:
+                    hexval.append(hex(each))
+                #print(hexval)
+
+    class InStream:
+        def __init__(self):
+            arguments = []
+            arguments = argv
+        
+        def clear(self):
+            self.arguments = []
+        
+        def update(self):
+            self.arguments = argv
+
+    ##--------listens to the desk--------##
+    def changeListener():
+        changes = False
+        def listen():
+            while True:
+                message = []
+                reading = False
+                if connection.input.poll():
+                    changes = True
+                    for event in connection.input.read(256):
+                        for byte in event[0]:
+                            if byte == 0xf0:
+                                if not reading:
+                                    message = [event[0][0]]
+                                    reading = True
+                            elif byte == 0xf7 and reading:
+                                if len(message) > 8:
+                                    return(message)
+                                    changes = False
+                                reading = False
+                            elif reading:
+                                    message.append(byte)
+        def inStream():
+            print(stdIO.arguments)
+
+        while True:
+            event = SysexEvent(listen())
+            
+    stdIO = InStream
+    changeListener()
+
+except:
+    error("Connection Error:        midi device not found")
