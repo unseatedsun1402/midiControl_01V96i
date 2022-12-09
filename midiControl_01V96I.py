@@ -18,8 +18,8 @@ sys.stdout.flush()
 ##--------Starting Variables-------##
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
-    #input = pygame.midi.Input
-    #output = pygame.midi.Output
+    input = pygame.midi.Input
+    output = pygame.midi.Output
 
     
         
@@ -426,9 +426,13 @@ try:
 
         while True:
             event = SysexEvent(listen())
-            
-    stdIO = InStream
-    changeListener()
 
 except:
     error("Connection Error:        midi device not found")
+
+def main():
+    stdIO = InStream
+    changeListener()
+
+if __name__ == '__main__':
+    main()
