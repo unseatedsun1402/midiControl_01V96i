@@ -119,8 +119,9 @@ def _print_device_info():
 #print_device_info()
 
 ##--------return Midi Input and Output ports--------##
-'''finds the mixing desk in the midi interfaces'''
+
 def find_01V96i_desk():
+    '''finds the mixing desk in the midi interfaces'''
     pygame.midi.init()
     findA = b'Yamaha 01V96i-1'
     findB = b'2- Yamaha 01V96i-1'
