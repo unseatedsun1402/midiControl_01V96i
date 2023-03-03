@@ -21,15 +21,16 @@ pygame.display.set_caption('VU Meter')
 fontSmall = pygame.font.Font('freesansbold.ttf', 12)
 pa = pyaudio.PyAudio()
 
-info = pa.get_default_input_device_info()
+info = pa.get_device_info_by_index(1)
 RATE = int(info['defaultSampleRate'])
 
 # open stream 
 stream = pa.open(format = pyaudio.paInt16,
-            channels = 2,
+            channels = 1,
+            input_device_index=1,
             rate = RATE,
             input = True,
-            frames_per_buffer = 128)
+            frames_per_buffer = 4096)
 
 while True: # main application loop
     # event handling loop for quit events
