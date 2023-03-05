@@ -28,7 +28,7 @@ def main():
     try:
         connection = Connection(find_01V96i_desk())
         parser = Parser(connection)
-        
+        global INPUT
         INPUT =  {i:inputChannel(i,conn = connection) for i in range(40)}
         while True:
             threading.Thread(update_meters())
