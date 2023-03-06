@@ -1,0 +1,39 @@
+{"Amplifiers":[
+    {
+        "Amplifier": "Marshall",
+        "Model":"JMP MKI"
+    },
+    {
+        "Make": "Marshall",
+        "Model":"JMP MKII"
+    },
+    {
+        "Make":"Vox",
+        "Model":"AC30"
+    },
+    {
+        "Make":"Yamaha",
+        "Model":"PG1"
+    },
+    {
+        "Make":"Yamaha",
+        "Model":"VR6000"
+    },
+    {
+        "Make":"Fender",
+        "Model":"Twin Reverb"
+    },
+    {
+        "Make":"Fender",
+        "Model":"Deluxe"
+    },
+    {
+        "Make":"DRZ",
+        "Model":"Mini Z"
+    },
+    
+    {
+        "Make":"None",
+        "Model": "Flat"
+    }]
+}
