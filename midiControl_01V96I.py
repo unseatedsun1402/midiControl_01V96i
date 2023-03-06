@@ -18,8 +18,8 @@ sys.stdout.flush()
 ##--------Starting Variables-------##
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
-    #input = pygame.midi.Input
-    #output = pygame.midi.Output
+    input = pygame.midi.Input
+    output = pygame.midi.Output
 
     
         
@@ -119,8 +119,9 @@ def _print_device_info():
 #print_device_info()
 
 ##--------return Midi Input and Output ports--------##
-'''finds the mixing desk in the midi interfaces'''
+
 def find_01V96i_desk():
+    '''finds the mixing desk in the midi interfaces'''
     pygame.midi.init()
     findA = b'Yamaha 01V96i-1'
     findB = b'2- Yamaha 01V96i-1'
@@ -426,9 +427,13 @@ try:
 
         while True:
             event = SysexEvent(listen())
-            
-    stdIO = InStream
-    changeListener()
 
 except:
     error("Connection Error:        midi device not found")
+
+def main():
+    stdIO = InStream
+    changeListener()
+
+if __name__ == '__main__':
+    main()
