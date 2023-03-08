@@ -39,52 +39,21 @@ def main():
 
     
     def draw():
-        for i in range(33):
-            for framec in range(0,frame,6):
-                if framec < 70: 
-                    pg.draw.rect(window, (0, 192, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
-                elif framec >= 70 and framec < 85:
-                    pg.draw.rect(window, (255, 255, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
-                else:
-                    pg.draw.rect(window, (255, 0, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
-
-        for i in range(33,40):
-            for framec in range(0,frame,6):
-                if framec < 70: 
-                    pg.draw.rect(window, (0, 192, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
-                elif framec >= 70 and framec < 85:
-                    pg.draw.rect(window, (255, 255, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
-                else:
-                    pg.draw.rect(window, (255, 0, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
-
-        for i in range(16):
-            for framec in range(0,frame,6):
-                if framec < 70: 
-                    pg.draw.rect(window, (0, 192, 0), (i*10 + 320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
-                elif framec >= 70 and framec < 85:
-                    pg.draw.rect(window, (255, 255, 0), (i*10 +320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
-                else:
-                    pg.draw.rect(window, (255, 0, 0), (i*10 +320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
-        
-        for i in range(2):
-            for framec in range(0,frame,6):
-                if framec < 70: 
-                    pg.draw.rect(window, (0, 192, 0), (i*10 + 320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
-                elif framec >= 70 and framec < 85:
-                    pg.draw.rect(window, (255, 255, 0), (i*10 +320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
-                else:
-                    pg.draw.rect(window, (255, 0, 0), (i*10 +320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
 
         try:
             for each in INPUT:
                 INPUT(each).level
-                pos = (INPUT(each).id * 10,50)
+                pos = (INPUT(each).id * 10,(SCREENHEIGHT/2)-font.size)
+                INPUT[each].meter.draw(window)
                 lbl = font.render(text = INPUT[each].short,antialias = True, color = ((230,230,230)))
-                lbl.blit(lbl, (pos[0],pos[1]+10))
+                window.blit(lbl, (pos[0],pos[1]))
 
                 pg.draw.rect(window,color=(140,110,80),rect=(pos,(10,10)))
         except:
-            pass
+            msg = pg.font.SysFont(None,24)
+            error = msg.render("No Inputs",True,(230,50,10))
+            rect = error.get_rect()
+            window.blit(error,(int(SCREENWIDTH/2)-rect.centerx,int(SCREENHEIGHT/2)))
         
         
             
@@ -98,10 +67,7 @@ def main():
                 sys.exit()
         
         draw()
-        msg = pg.font.SysFont(None,24)
-        error = msg.render("No Inputs",True,(230,50,10))
-        rect = error.get_rect()
-        window.blit(error,(int(SCREENWIDTH/2)-rect.centerx,int(SCREENHEIGHT/2)))
+        
         global frame
         if frame <= 100:
             frame += 1
