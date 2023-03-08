@@ -13,9 +13,8 @@ class inputChannel():
         self.short = self.__get_short()
         self.name = self.__get_name()
         self.connection = conn
-        self.level = None
-        self.meter = VU.Meter()
-        
+        self.level = 0
+        self.meter = VU.Meter()        
     
     def __get_short(self):
         """Gets short (xxxx) channel name"""
