@@ -1,5 +1,5 @@
 """Yamaha digital mixer virtual input channel object"""
-import Connection
+import Connection, VU
 import time
 import pygame.midi as midi
 
@@ -14,6 +14,7 @@ class inputChannel():
         self.name = self.__get_name()
         self.connection = conn
         self.level = None
+        self.meter = VU.Meter()
         
     
     def __get_short(self):

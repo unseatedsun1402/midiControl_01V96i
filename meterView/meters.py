@@ -10,6 +10,7 @@ import threading
 ##--------Starting Variables-------##
 connection = Connection
 parser = Parser
+frame = 0
 
 def main():
     flags = pg.OPENGL
@@ -20,6 +21,7 @@ def main():
     window = pg.display.set_mode((SCREENWIDTH,SCREENHEIGHT))
     pg.display.set_caption('01v96i Control')
     pa = pyaudio.PyAudio()
+    
 
     info = pa.get_default_input_device_info()
     RATE = int(info['defaultSampleRate'])
@@ -37,6 +39,42 @@ def main():
 
     
     def draw():
+        for i in range(33):
+            for framec in range(0,frame,6):
+                if framec < 70: 
+                    pg.draw.rect(window, (0, 192, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
+                elif framec >= 70 and framec < 85:
+                    pg.draw.rect(window, (255, 255, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
+                else:
+                    pg.draw.rect(window, (255, 0, 0), (i*10 + 20, ((SCREENHEIGHT/2)-framec), 7, 5))
+
+        for i in range(33,40):
+            for framec in range(0,frame,6):
+                if framec < 70: 
+                    pg.draw.rect(window, (0, 192, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
+                elif framec >= 70 and framec < 85:
+                    pg.draw.rect(window, (255, 255, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
+                else:
+                    pg.draw.rect(window, (255, 0, 0), (i*10 + 30, ((SCREENHEIGHT/2)-framec), 7, 5))
+
+        for i in range(16):
+            for framec in range(0,frame,6):
+                if framec < 70: 
+                    pg.draw.rect(window, (0, 192, 0), (i*10 + 320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
+                elif framec >= 70 and framec < 85:
+                    pg.draw.rect(window, (255, 255, 0), (i*10 +320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
+                else:
+                    pg.draw.rect(window, (255, 0, 0), (i*10 +320+120, ((SCREENHEIGHT/2)-framec), 7, 5))
+        
+        for i in range(2):
+            for framec in range(0,frame,6):
+                if framec < 70: 
+                    pg.draw.rect(window, (0, 192, 0), (i*10 + 320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
+                elif framec >= 70 and framec < 85:
+                    pg.draw.rect(window, (255, 255, 0), (i*10 +320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
+                else:
+                    pg.draw.rect(window, (255, 0, 0), (i*10 +320+300, ((SCREENHEIGHT/2)-framec), 7, 5))
+
         try:
             for each in INPUT:
                 INPUT(each).level
@@ -53,7 +91,7 @@ def main():
         
     def mainloop():
         frametime = time.time()
-        window.fill((49,51,50))
+        window.fill((71,75,80))
         for event in pg.event.get():
             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
                 pg.quit()
@@ -64,9 +102,13 @@ def main():
         error = msg.render("No Inputs",True,(230,50,10))
         rect = error.get_rect()
         window.blit(error,(int(SCREENWIDTH/2)-rect.centerx,int(SCREENHEIGHT/2)))
-        frametime = (1/15)-time.time()-frametime
-        if frametime > 0:
-            time.sleep((1/15)-frametime)
+        global frame
+        if frame <= 100:
+            frame += 1
+        else:
+            time.sleep(0.5)
+            frame = 0
+        time.sleep(0.0012)
         pg.display.update()
     
     while True:
