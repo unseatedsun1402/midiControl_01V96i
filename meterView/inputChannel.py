@@ -3,82 +3,113 @@ import Connection, VU
 import time
 import pygame.midi as midi
 
+sysExChg = [0xF0,0x43,0x10,0x3E]
+sysExReq = [0xf0,0x43,0x30,0x3e]
+
 class inputChannel():
     """Yamaha digital mixer virtual input channel object"""
     connection = Connection
 
     def __init__(self,val: int,conn: Connection):
         """Pass an integer value to identify the channel"""
-        self.id = val
-        self.short = self.__get_short()
-        self.name = self.__get_name()
         self.connection = conn
-        self.level = None
+        self.id = val
+        try:
+            if self.id<32:
+                self.short = self.__get_short()
+                self.name = self.__get_name()
+            else:
+                self.short = str("ST 41" + str(self.id % 32))
+                self.name = str("STIN" + str(self.id % 32))
+        except Exception as e: 
+            print(e)
+        
+        
         self.meter = VU.Meter()
         
     
     def __get_short(self):
         """Gets short (xxxx) channel name"""
-        msg = bytearray[0xF0,0x43,0x30,0x3E,0x1A,0x02,0x04,0x00,self.id]
+        msg = [0xF0,0x43,0x30,0x3E,0x1A,0x02,0x04,0x00,self.id]
         msg.append(0xf7)
-
-        for i in range(3):
+        message = ['1','2','3','4']
+        i = 0
+        while i <= 3:
             self.connection.output.write_sys_ex(msg= msg,when= midi.time())
-            msg[7] += 1
-            time.sleep(0.1)
-            message = []
+            msg[7] = i
+            time.sleep(0.001)
+            sysex = []
             reading = False
-            for event in self.connection.input.read(256):
-                for byte in event[0]:
-                    if byte == 0xf0:
-                        if not reading:
-                            message = [event[0][0]]
+            buffer = self.connection.input.read(256)
+            for events in range(len(buffer)-1):
+                try:
+                    if not reading:
+                        if set(sysExChg).issubset(buffer[events][0]):
+                            #message[i] = events[0].append(list(each for each in events[0]))
                             reading = True
-                    elif byte == 0xf7 and reading and len(message) > 6:
-
-                        if message[6] == 4:
-                            #connection.input.close()
-                            print(chr(message[len(message)-1]))
+                            for each in buffer[events][0]:
+                                sysex.append(each)
+                    elif [0x1a,0x02,0x04,i] == buffer[events][0]:
+                        for each in buffer[events][0]:
+                            sysex.append(each)
+                        if set([self.id,0x00,0x00]).issubset(buffer[events+1][0]):
+                            message[i] = chr(buffer[events+2][0][0])
+                            i += 1
                             reading = False
-                        else:
-                            pass
-                    elif reading and len(message) <15:
-                            message.append(byte)
-                    else: reading = False
+                            sysex = []
+                    else:
+                        reading = False
+                        sysex = []
+                except Exception as e:
+                    print(e)
+        name = ''
+        for each in message:
+            name = name + each
+        return (name)
 
     def __get_name(self):
         """Gets long channel name"""
-        msg = bytearray[0xF0,0x43,0x30,0x3E,0x1A,0x02,0x04,0x04,self.cc]
+        msg = [0xF0,0x43,0x30,0x3E,0x1A,0x02,0x04,0x00,self.id]
         msg.append(0xf7)
-
-        for i in range(15):
+        message = [str(each) for each in range(16)]
+        i = 4
+        while i < 20:
             self.connection.output.write_sys_ex(msg= msg,when= midi.time())
-            msg[7] += 1
-            time.sleep(0.1)
-            message = []
+            msg[7] = i
+            time.sleep(0.001)
+            sysex = []
             reading = False
-            for event in self.connection.input.read(256):
-                for byte in event[0]:
-                    if byte == 0xf0:
-                        if not reading:
-                            message = [event[0][0]]
+            buffer = self.connection.input.read(256)
+            for events in range(len(buffer)-1):
+                try:
+                    if not reading:
+                        if set(sysExChg).issubset(buffer[events][0]):
+                            #message[i] = events[0].append(list(each for each in events[0]))
                             reading = True
-                    elif byte == 0xf7 and reading and len(message) > 6:
-                        if message[6] == 4:
-                            #connection.input.close()
-                            print(chr(message[len(message)-1]))
+                            for each in buffer[events][0]:
+                                sysex.append(each)
+                    elif [0x1a,0x02,0x04,i] == buffer[events][0]:
+                        for each in buffer[events][0]:
+                            sysex.append(each)
+                        if set([self.id,0x00,0x00]).issubset(buffer[events+1][0]):
+                            message[i-4] = chr(buffer[events+2][0][0])
+                            i += 1
                             reading = False
+                            sysex = []
+                    else:
+                        reading = False
+                        sysex = []
+                except Exception as e:
+                    print(e)
+        name = ''
+        for each in message:
+            name = name + each
+        return (name)
 
-                        else:
-                            pass
-                    elif reading and len(message) <15:
-                            message.append(byte)
-                    else: reading = False
-
-    def get_status(self,point: int):
+    def get_status(self):
         """polls meter value meter value data"""
-        self.connection.output.write(data= bytearray[0xF0,0x43,0x30,0x3E,0x1A,0x04,0x50,0x00,self.id,0xf1])
+        self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x1A,0x04,0x50,0x00,self.id,0xf7],when=midi.time())
 
     def update_level(self,value):
-        self.level = value
-
+        if(self.meter.update_level(value)):
+            print("updated")

@@ -1,5 +1,5 @@
 """Parses incoming midi messages"""
-import Connection
+from Connection import Connection
 
 class Parser():
     input_events = []
@@ -15,13 +15,13 @@ class Parser():
     stereo_events = []
     """parameter changes for stereo bus objects"""
 
+    connection = Connection
+
     def __init__(self,conn: Connection):
         self.connection = conn
 
     def _readBytes(self,bufferSize: int):
-        events = []
-        for each in self.connection.input.read(bufferSize):
-            events.append(each)
+        events = self.connection.input.read(bufferSize)
         
         return events
     
@@ -43,37 +43,41 @@ class Parser():
         return eventFlag
 
     def update_meters(self):
-        events = self._readBytes(256)
+        """collects meter value updates"""
+        events = self.connection.input.read(256)
         inputMeter = []
         AUXMeter = []
         BusMeter = []
-        MatrixMeter = []
+        #MatrixMeter = []
         StereoMeter = []
 
-
-        for event in events:
-            for each in event:
-                if set([0xF0,0x43,0x10,0x3E,0x1A,0x04]).issubset(each):
-                    match each[6]:
-                        case 0x50:
-                            inputMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-                        
-                        case 0x51:
-                            BusMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-                        
-                        case 0x52:
-                            AUXMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-                        
-                        case 0x53:
-                            MatrixMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-
-                        case 0x54:
-                            StereoMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-
-                        case _:
-                            pass
+        started = False
+        for event in range(len(events)):
+            for each in events[event]:
+                if(isinstance(each,int) != True):
+                    if set([0xF0,0x43,0x10,0x3E]).issubset(each):
+                        try:
+                            next = events[event+1][0]
+                            data = events[event+3][0]
+                            res = (data[0],[data[1],data[2],data[3],data[0]])
+                            if next == [0x1A,0x04,0x50,0x00]:
+                                    inputMeter.append(res)
+                            
+                            elif next == [0x1A,0x04,0x51,0x00]:
+                                    BusMeter.append(res)
+                                
+                            elif next == [0x1A,0x04,0x52,0x00]:
+                                    AUXMeter.append(res)
+                            
+                            elif next == [0x1A,0x04,0x54,0x00]:
+                                    StereoMeter.append(res)
+                                #case 0x53:
+                                #    MatrixMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
+                        except Exception as e:
+                            print (e)
                 else:
+                    pass
                     break
         
-        
-        return tuple(inputMeter,BusMeter,AUXMeter,MatrixMeter,StereoMeter)
+        res = (inputMeter,BusMeter,AUXMeter,StereoMeter)
+        return (res)

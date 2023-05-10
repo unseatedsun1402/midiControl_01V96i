@@ -4,7 +4,7 @@ from errno import errorcode
 import string
 import sys
 from sys import argv
-#import os
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
 from tokenize import String
 import pygame as pg
@@ -18,8 +18,8 @@ sys.stdout.flush()
 ##--------Starting Variables-------##
 class Connection():
     """Connection is a class object that can access a midi device input and output"""
-    input = pygame.midi.Input
-    output = pygame.midi.Output
+    #input = pygame.midi.Input
+    #output = pygame.midi.Output
 
     
         
@@ -119,9 +119,8 @@ def _print_device_info():
 #print_device_info()
 
 ##--------return Midi Input and Output ports--------##
-
+'''finds the mixing desk in the midi interfaces'''
 def find_01V96i_desk():
-    '''finds the mixing desk in the midi interfaces'''
     pygame.midi.init()
     findA = b'Yamaha 01V96i-1'
     findB = b'2- Yamaha 01V96i-1'
@@ -139,9 +138,22 @@ def find_01V96i_desk():
     return(input_id,output_id)
 
 
+##-------- HTTP Server --------##
+class Serv(BaseHTTPRequestHandler):
+    def do_Get(self):
+        if self.path == '/':
+            self.path += 'index.html'
+        try:
+            file_to_open = open(self.path[1:]).read()
+            self.send_response(200)
+        except:
+            file_to_open = "File not found"
+            self.send_response(404)
+        self.end_headers()
+        self.wfile.write(bytes(file_to_open,'utf-8'))
 
-
-
+httpd = HTTPServer(('localhost',8000),Serv)
+httpd.serve_forever()
 
 ##--------populate meter values--------##
 with open('METER_DATA.csv','r')as csv_file:
@@ -427,12 +439,9 @@ try:
 
         while True:
             event = SysexEvent(listen())
+            
+    stdIO = InStream
+    changeListener()
 
 except:
     error("Connection Error:        midi device not found")
-
-def main():
-    changeListener()
-
-if __name__ == '__main__':
-    main()

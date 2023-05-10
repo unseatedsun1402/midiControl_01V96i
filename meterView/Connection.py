@@ -13,9 +13,3 @@ class Connection():
             self.output = midi.Output(output_id)
         except:
             error("Midi Device not Found")
-            root = Tk()
-            errNotice = Label(root, text="Device not found. Please check device connections and drivers are up to date.").grid(column=0, row=0)
-            exitBtn = Button(root, text="Quit", command= exit).grid(column=0, row=1)
-
-
-            root.mainloop()
