@@ -2,6 +2,7 @@
 import Connection, VU
 import time
 import pygame.midi as midi
+import pygame
 
 sysExChg = [0xF0,0x43,0x10,0x3E]
 sysExReq = [0xf0,0x43,0x30,0x3e]
@@ -14,6 +15,7 @@ class inputChannel():
         """Pass an integer value to identify the channel"""
         self.connection = conn
         self.id = val
+        self.level = 0
         try:
             if self.id<32:
                 self.short = self.__get_short()
@@ -110,6 +112,16 @@ class inputChannel():
         """polls meter value meter value data"""
         self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x1A,0x04,0x50,0x00,self.id,0xf7],when=midi.time())
 
-    def update_level(self,value):
-        if(self.meter.update_level(value)):
-            print("updated")
+    def update_level(self,data):
+        self.level = ((16*data[2])+data[3])
+        return True
+    
+    def draw(self,context):
+        """draws a meter for given input"""
+        for i in range (0,self.level, 6):
+            if i < 20: 
+                pygame.draw.rect(context, (0, 192, 0), (self.id*10, (475-(i)), 10, 5))
+            elif i >= 20 and i < 30:
+                pygame.draw.rect(context, (255, 255, 0), (self.id*10, (475-(i)), 10, 5))
+            else:
+                pygame.draw.rect(context, (255, 0, 0), (self.id*10, (475-(i)), 10, 5))

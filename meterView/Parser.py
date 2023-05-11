@@ -44,7 +44,7 @@ class Parser():
 
     def update_meters(self):
         """collects meter value updates"""
-        events = self.connection.input.read(256)
+        events = self.connection.input.read(1024)
         inputMeter = []
         AUXMeter = []
         BusMeter = []
@@ -73,8 +73,9 @@ class Parser():
                                     StereoMeter.append(res)
                                 #case 0x53:
                                 #    MatrixMeter.append(tuple(id = each[8],data = [each[9],each[10],each[11],each[12]]))
-                        except Exception as e:
-                            print (e)
+                        except IndexError as e:
+                            #print (e)
+                            pass
                 else:
                     pass
                     break

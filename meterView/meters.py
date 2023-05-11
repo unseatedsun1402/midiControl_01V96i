@@ -37,7 +37,7 @@ def main():
         global PARSER
         PARSER = Parser(connection)
         global input
-        input =  {i:inputChannel(i,conn = connection) for i in range(40)}
+        input =  {i:inputChannel(i,conn = connection) for i in range(32)}
             
     except:
         print("Connection failed")
@@ -45,13 +45,18 @@ def main():
     
     def draw():
         try:
+            labelFont = pg.font.Font('freesansbold.ttf',11)
+            line = 1
             for each in input:
-                pos = (input[each].id * 10,(SCREENHEIGHT/2)-18)
-                input[each].meter.draw(window)
-                lbl = font.render(text = input[each].short,antialias = True, color = ((230,230,230)))
+                if(input[each].id>15):
+                    line = 2
+                pos = (input[each].id%16 * 30,int(line*(SCREENHEIGHT/2)-23))
+                input[each].draw(window)
+                lbl = labelFont.render(input[each].short,True, (230,230,230))
                 window.blit(lbl, (pos[0],pos[1]))
 
-                pg.draw.rect(window,color=(140,110,80),rect=(pos,(10,10)))
+                pg.draw.rect(window,color=(140,110,80),rect=((pos[0]+7,pos[1]-12),(10,10)))
+
         except Exception as e:
             print(e)
             msg = pg.font.SysFont(None,24)
@@ -73,22 +78,15 @@ def main():
         update_meters()
         draw()
         
-        global frame
-        if frame <= 100:
-            frame += 1
-        else:
-            time.sleep(0.5)
-            frame = 0
-        time.sleep(0.0012)
         pg.display.update()
     
-    
-    mainloop()
+    while True:
+        mainloop()
 
     
 
 ##--------Graphical user Interface-------##
-SCREENWIDTH = 800
+SCREENWIDTH = 900
 SCREENHEIGHT = 480
 
 def find_01V96i_desk():
