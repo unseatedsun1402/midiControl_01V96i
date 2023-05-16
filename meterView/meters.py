@@ -1,6 +1,7 @@
 from Connection import Connection
 from Parser import Parser
 from  inputChannel import inputChannel
+from stereoBus import stereoChannel as st
 import VU
 from errno import errorcode
 import pygame as pg
@@ -38,9 +39,11 @@ def main():
         PARSER = Parser(connection)
         global input
         input =  {i:inputChannel(i,conn = connection) for i in range(32)}
+        stereo = {i:stereoBus(i,conn= connection) for i in range(2)}
             
     except:
         print("Connection failed")
+        quit()
 
     
     def draw():
@@ -118,10 +121,11 @@ def update_meters():
     try:
         updates = PARSER.update_meters()
         inp,bus,aux,st = updates
+        for each in inp:
+            input[each[0]].update_level(each[1])
     except Exception as e:
         print(e)
-    for each in inp:
-        input[each[0]].update_level(each[1])
+    
     #time.sleep(1/15)
 
 

@@ -7,7 +7,7 @@ import pygame
 sysExChg = [0xF0,0x43,0x10,0x3E]
 sysExReq = [0xf0,0x43,0x30,0x3e]
 
-class inputChannel():
+class stereoChannel():
     """Yamaha digital mixer virtual stereo bus object"""
     connection = Connection
 
