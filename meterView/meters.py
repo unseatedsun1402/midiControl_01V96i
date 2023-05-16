@@ -1,4 +1,7 @@
-import Connection, Parser, inputChannel, VU
+from Connection import Connection
+from Parser import Parser
+from  inputChannel import inputChannel
+import VU
 from errno import errorcode
 import pygame as pg
 from pygame.locals import *
@@ -9,8 +12,9 @@ import threading
 
 ##--------Starting Variables-------##
 connection = Connection
-parser = Parser
+PARSER = Parser
 frame = 0
+
 
 def main():
     flags = pg.OPENGL
@@ -23,33 +27,38 @@ def main():
     pa = pyaudio.PyAudio()
     
 
-    info = pa.get_default_input_device_info()
-    RATE = int(info['defaultSampleRate'])
+    #info = pa.get_default_input_device_info()
+    #RATE = int(info['defaultSampleRate'])
 
 
     try:
-        connection = Connection(find_01V96i_desk())
-        parser = Parser(connection)
-        global INPUT
-        INPUT =  {i:inputChannel(i,conn = connection) for i in range(40)}
-        while True:
-            threading.Thread(update_meters())
+        device = find_01V96i_desk()
+        connection = Connection(device)
+        global PARSER
+        PARSER = Parser(connection)
+        global input
+        input =  {i:inputChannel(i,conn = connection) for i in range(32)}
+            
     except:
         print("Connection failed")
 
     
     def draw():
-
         try:
-            for each in INPUT:
-                INPUT(each).level
-                pos = (INPUT(each).id * 10,(SCREENHEIGHT/2)-font.size)
-                INPUT[each].meter.draw(window)
-                lbl = font.render(text = INPUT[each].short,antialias = True, color = ((230,230,230)))
+            labelFont = pg.font.Font('freesansbold.ttf',11)
+            line = 1
+            for each in input:
+                if(input[each].id>15):
+                    line = 2
+                pos = (input[each].id%16 * 30,int(line*(SCREENHEIGHT/2)-23))
+                input[each].draw(window)
+                lbl = labelFont.render(input[each].short,True, (230,230,230))
                 window.blit(lbl, (pos[0],pos[1]))
 
-                pg.draw.rect(window,color=(140,110,80),rect=(pos,(10,10)))
-        except:
+                pg.draw.rect(window,color=(140,110,80),rect=((pos[0]+7,pos[1]-12),(10,10)))
+
+        except Exception as e:
+            print(e)
             msg = pg.font.SysFont(None,24)
             error = msg.render("No Inputs",True,(230,50,10))
             rect = error.get_rect()
@@ -66,15 +75,9 @@ def main():
                 pg.quit()
                 sys.exit()
         
+        update_meters()
         draw()
         
-        global frame
-        if frame <= 100:
-            frame += 1
-        else:
-            time.sleep(0.5)
-            frame = 0
-        time.sleep(0.0012)
         pg.display.update()
     
     while True:
@@ -83,33 +86,43 @@ def main():
     
 
 ##--------Graphical user Interface-------##
-SCREENWIDTH = 800
+SCREENWIDTH = 900
 SCREENHEIGHT = 480
 
 def find_01V96i_desk():
     '''finds the mixing desk in the midi interfaces'''
     midi.init()
     findA = b'Yamaha 01V96i-1'
-    findB = b'2- Yamaha 01V96i-1'
     input_id = -1
     output_id = -1
     for i in range(midi.get_count()):
         device = midi.get_device_info(i)
+        
         (interf, name, input, output, opened) = device
-        if name==findA or name == findB:
-            if input:
+        if findA in name:
+            if input == 1:
                 input_id = i
-            if output:
+            if output == 1:
                 output_id = i
     midi.quit
-    return(input_id,output_id)
+    device = (input_id,output_id)
+    return(device)
 
 
 def update_meters():
-    for each in INPUT:
-        INPUT[each].get_staus()
-    parser.update_meters()
-    time.sleep(1/15)
+    for each in input:
+        try:
+            input[each].get_status()
+        except Exception as e:
+            print(e)
+    try:
+        updates = PARSER.update_meters()
+        inp,bus,aux,st = updates
+    except Exception as e:
+        print(e)
+    for each in inp:
+        input[each[0]].update_level(each[1])
+    #time.sleep(1/15)
 
 
 
