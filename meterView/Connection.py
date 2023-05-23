@@ -13,5 +13,3 @@ class Connection():
             self.output = midi.Output(output_id)
         except:
             error("Midi Device not Found")
-            self.output = -1
-            self.input = -1
