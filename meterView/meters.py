@@ -9,7 +9,6 @@ from pygame.locals import *
 import sys,pyaudio,time
 import pygame.midi as midi
 import threading
-import gui
 from gui import onButton,stereoButton, fader
 
 
@@ -146,8 +145,6 @@ def find_01V96i_desk():
                 input_id = i
             if output == 1:
                 output_id = i
-        else:
-            print(interf)
     midi.quit
     device = (input_id,output_id)
     return(device)
