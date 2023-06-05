@@ -184,6 +184,7 @@ class fader():
     
     def draw(self,window,channel):
         pos = pygame.mouse.get_pos()
+        
 
         if self.buttonRect.collidepoint(pos):
             self.travelSurface.fill((196,196,196))
@@ -191,7 +192,7 @@ class fader():
                 if self.clicked: 
                     pass
                 else:
-                    self.dragged = pygame.mouse.get_pos()[1]
+                    self.dragged = pos[1]
                     self.clicked = True          
             else:
                 self.clicked = False
@@ -202,16 +203,31 @@ class fader():
         if self.clicked: #checks position of mouse and moves fader
             if pygame.mouse.get_pressed()[0]:
                 moved = (self.dragged-pos[1])
-                if(moved-self.position > 0):
-                    if (moved-self.position<self.travel):
-                        self.position = (self.position-moved)
-                        self.buttonRect = pygame.Rect(self.x, self.y+self.position, self.width, self.height)
+                debug(window,moved)
+
+                font = pygame.font.Font('freesansbold.ttf',18)
+                information = font.render(str(self.position),True,(240,240,24))
+                informationSurface = pygame.Rect(600,320,50, 50)
+                window.blit(information, informationSurface)
+
+                if (self.position + moved < self.travel):
+                    if(self.position + moved > 0):
+                        self.position += moved
                     else:
-                        self.position = self.travel
+                        self.position = 0
                 else:
-                    self.position = 0
+                    self.position = self.travel
+                
             else:
                 self.clicked = False
                 self.dragged = 0
-    
+        
+        self.dragged = pos[1]
+        self.buttonRect = pygame.Rect(self.x, self.y-self.position, self.width, self.height)
         window.blit(self.travelSurface,self.buttonRect)
+
+def debug(window,content):
+    font = pygame.font.Font('freesansbold.ttf',18)
+    information = font.render(str(content),True,(240,240,24))
+    informationSurface = pygame.Rect(600,300,50, 50)
+    window.blit(information, informationSurface)
