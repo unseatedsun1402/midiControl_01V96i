@@ -118,7 +118,7 @@ def main():
             if skipped > 100:
                 update_meters()
         
-        
+        #check_changes()
         pg.display.update()
     
     while True:
@@ -136,7 +136,9 @@ def find_01V96i_desk():
     findA = b'Yamaha 01V96i-1'
     input_id = -1
     output_id = -1
-    for i in range(midi.get_count()):
+
+    nofdevices = midi.get_count()
+    for i in range(nofdevices):
         device = midi.get_device_info(i)
         
         (interf, name, input, output, opened) = device
@@ -157,14 +159,23 @@ def poll_meters():
             print(e)
     stereo.get_status()
 
+def check_changes():
+    try:
+        changes = PARSER.listen()
+        if len(changes) > 0:
+            print(changes)
+    except Exception as e:
+        print(e)
+
 def update_meters():
     try:
-        updates = PARSER.update_meters()
-        inp,bus,aux,st = updates
+        updates = PARSER.listen()
+        inp,bus,aux,st,resolution = updates
         for each in inp:
             input[each[0]].update_level(each[1])
         for each in st:
             stereo.update_level(each)
+        print(resolution)
     except Exception as e:
         print(e)
     

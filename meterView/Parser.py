@@ -25,6 +25,7 @@ class Parser():
 
     def __init__(self,conn: Connection):
         self.connection = conn
+        ## replace constant F0,43,3E/30,10 with runtime defined constant for wider desk compatability
 
     def _readBytes(self,bufferSize: int):
         events = self.connection.input.read(bufferSize)
@@ -32,22 +33,57 @@ class Parser():
         return events
     
     def listen(self):
-        events = self._readBytes(100)
-        eventFlag = 0
-        message = []
-        reading = False
-        for event in events:
-            for byte in event[0]:
-                if byte == 0xf0:
-                    if not reading:
-                        message = [byte]
-                        reading = True
-                elif byte == 0xf7 and reading:
-                    if len(message) > 8 and message[4] != 26:
-                        print(message)
-                    reading = False
-                elif reading:
-                        message.append(byte)
+        '''listens for desk changes and returns valid messages to the calling function'''
+        resolution = []
+        inputMeter = []
+        AUXMeter = []
+        BusMeter = []
+        #MatrixMeter = []
+        StereoMeter = []
+
+        events = self.connection.input.read(256)
+        cursor = 0
+        for event in range(len(events)):
+            for each in events[event]:
+                if(isinstance(each,int) != True):
+                    if set([0xF0,0x43,0x10,0x3E]).issubset(each):
+                        try:
+                            end = False
+                            bite = events[cursor][0]
+                            message = []
+                            while not end:
+                                cursor += 1
+                                bite = events[cursor][0]
+                                if set([0xF7]).issubset(bite):
+                                     message.append(bite)
+                                     end = True
+                                else:
+                                     message.append(bite)
+                            if len(message) > 2:
+                                if set([0x1A,0x21]).issubset(message[1][:2]):
+                                    res = message[2][0],(128*message[2][1])+message[2][2]
+                                    match(message[1][2:]):
+                                        case[0x00,0x00]:
+                                            inputMeter.append(res)
+                                        case[0x01,0x00]:
+                                            AUXMeter.append(res)
+                                        case[0x02,0x00]:
+                                            BusMeter.append(res)
+                                        case[0x04,0x00]:
+                                            StereoMeter.append(res)
+                                else:
+                                    resolution.append(message)
+                                     
+                        except IndexError as e:
+                            #print (e)
+                            pass
+                else:
+                    pass
+                    break
+            cursor += 1
+        
+        returnVal = (inputMeter,AUXMeter,BusMeter,StereoMeter,resolution)
+        return (returnVal)
     
     def listenFor(connection,*args):
         direction = args[0]

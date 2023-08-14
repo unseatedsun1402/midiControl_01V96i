@@ -3,6 +3,54 @@ import pygame
 from pygame import font
 from inputChannel import inputChannel
 
+class sync():
+    """Sync Element"""
+    def __init__(self, x, y, width, height, buttonText='ON', onclickFunction=None, onePress=False):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
+        self.alreadyPressed = False
+        self.clicked = False
+        labelFont = font.Font('freesansbold.ttf',11)
+        self.mute = False
+
+        self.fillColors = {
+            'normal': '#ffffff',
+            'hover': '#666666',
+            'pressed': '#333333',
+        }
+
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.textRect = pygame.Rect(self.x+3,self.y,self.width,self.height)
+        self.buttonSurf = labelFont.render(buttonText, True, (20, 20, 20))
+        self.indicator = pygame.Rect(self.x+6,self.y+10,self.width/2,self.height/5)
+        self.indicatorSurf = pygame.Surface((self.width/2, self.height/5))
+    
+    def draw(self,window,conn):
+        pos = pygame.mouse.get_pos()
+            
+        if self.buttonRect.collidepoint(pos):
+            
+            if pygame.mouse.get_pressed()[0]:
+                if self.clicked:
+                    pass
+                else:
+                    return True
+                    
+            else:
+                return False
+            self.buttonSurface.fill((240,100,44))
+        else:
+            self.buttonSurface.fill((196,196,196))
+        
+        window.blit(self.buttonSurface,self.buttonRect)
+        window.blit(self.buttonSurf,self.textRect)
+        window.blit(self.indicatorSurf,self.indicator)
+
 class onButton(inputChannel):
     """Mute UI Element"""
     def __init__(self, x, y, width, height, buttonText='ON', onclickFunction=None, onePress=False):
@@ -203,12 +251,7 @@ class fader():
         if self.clicked: #checks position of mouse and moves fader
             if pygame.mouse.get_pressed()[0]:
                 moved = (self.dragged-pos[1])
-                debug(window,moved)
-
-                font = pygame.font.Font('freesansbold.ttf',18)
-                information = font.render(str(self.position),True,(240,240,24))
-                informationSurface = pygame.Rect(600,320,50, 50)
-                window.blit(information, informationSurface)
+                #debug(window,moved)
 
                 if (self.position + moved < self.travel):
                     if(self.position + moved > 0):
