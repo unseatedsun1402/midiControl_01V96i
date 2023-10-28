@@ -1,6 +1,7 @@
 from Connection import Connection
 from Parser import Parser
 from inputChannel import inputChannel
+from AUXchannel import auxChannel
 from stereoBus import stereoBus
 import VU
 from errno import errorcode
@@ -9,7 +10,7 @@ from pygame.locals import *
 import sys,pyaudio,time
 import pygame.midi as midi
 import threading
-from gui import onButton,stereoButton, fader
+from gui import onButton,stereoButton, fader, sync
 
 
 ##--------Starting Variables-------##
@@ -40,19 +41,26 @@ def main():
         device = find_01V96i_desk()
         connection = Connection(device)
         global PARSER
-        PARSER = Parser(connection)
+        
         global input
-        input =  {i:inputChannel(i,conn = connection) for i in range(32)}
+        global aux
         global stereo
+
+        PARSER = Parser(connection)
+        input =  {i:inputChannel(i,conn = connection,AUXCOUNT = 8, BusCOUNT=8) for i in range(32)}
+        #aux = {i:auxChannel(i,conn = connection) for i in range(8)}
         stereo = stereoBus(conn = connection)
         line = 1
         for each in input:
             if(input[each].id>15):
                     line = 0
-            pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*180))-30))
-            input[each].on = onButton(x=pos[0],y=pos[1]+15,height =14, width =25)
-            input[each].main = stereoButton(x=pos[0],y=pos[1]-150,height =14, width =25)
-            input[each].fader = fader(x=pos[0],y=pos[1]-20,height =14, width = 15)
+            pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*200))-30))
+            input[each].on = onButton(x=pos[0],y=pos[1]-170,height =14, width =25)
+            input[each].main = stereoButton(x=pos[0],y=pos[1]-185,height =14, width =25)
+            input[each].fader = fader(x=pos[0],y=pos[1]-10,height =14, width = 15)
+
+        stereo.fader = fader(x=680,y=295,height =20, width = 15,color = 'red',travel = 146)
+        syncBtn = sync(x=400,y=20,height =15, width =35,onclickFunction=synConsole)
         poll_meters()
             
     except:
@@ -66,17 +74,27 @@ def main():
             for each in input:
                 if(input[each].id>15):
                     line = 0
-                pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*180))-30))
-                input[each].draw(window,(pos[0],pos[1]-10))
+                pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*200))-30))
+                input[each].draw(window,(pos[0],pos[1]+10))
                 lbl = labelFont.render(input[each].short,True, (230,230,230))
                 input[each].on.draw(window,input[each])
                 input[each].main.draw(window,input[each])
-                input[each].fader.draw(window,input[each])
+                if(input[each].fader.draw(window,input[each])):
+                    connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
+                
+                stereo.fader.draw(window,stereo)
+
                 window.blit(lbl, (pos[0],pos[1]+2))
             
             lbl = labelFont.render("Stereo LR",True, (230,230,230))
+            
             stereo.draw(window,(720,320))
+            
+            syncBtn.draw(window)
+
             window.blit(lbl, (700,330))
+
+            
 
         except Exception as e:
             print(e)
@@ -112,11 +130,13 @@ def main():
         #PARSER.listen()
         #print("frametime: " + str(time.time()-frametime))
         if time.time()-frametime > 0.010:
-            update_meters()
+            pass
         else:
             skipped += 1
             if skipped > 100:
-                update_meters()
+                pass
+        
+        update_meters()
         
         #check_changes()
         pg.display.update()
@@ -159,13 +179,25 @@ def poll_meters():
             print(e)
     stereo.get_status()
 
-def check_changes():
-    try:
-        changes = PARSER.listen()
-        if len(changes) > 0:
-            print(changes)
-    except Exception as e:
-        print(e)
+def check_changes(res):
+    for each in res:
+        match each[1]:
+
+            case [0x7F,0x01,0x1c,0x00]:
+                input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
+            #print(str('input '+str(each[2][0])+' fader = '+str(input[each[2][0]].faderlevel)))
+            case [0x1a, 0x4, 0x5a, 0x0]:
+                input[each[2][0]].mute = each[3][0]
+
+            case [0x1a,0x3,0x2e,0x0]:
+                input[each[2][0]].cue = each[3][0]
+
+            case [0x7f,0x01,0x4f,0x00]:
+                stereo.faderlevel = (128*each[2][3])+each[3][0]
+
+            case default:
+                print([[hex(bit)for bit in bite] for bite in each])
+            
 
 def update_meters():
     try:
@@ -175,11 +207,19 @@ def update_meters():
             input[each[0]].update_level(each[1])
         for each in st:
             stereo.update_level(each)
-        print(resolution)
+        if len(resolution) > 0:
+            check_changes(resolution)
+        #    print(resolution)
     except Exception as e:
         print(e)
     
     #time.sleep(1/15)
+
+def synConsole():
+    for each in input:
+        input[each].get_fader()
+        print(PARSER.listenFor(connection,[0xF0,0x43,0x10,0x3E],[0x7F,0x01,0x1C,0x00],each))
+
 
 
 

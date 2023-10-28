@@ -41,7 +41,7 @@ class Parser():
         #MatrixMeter = []
         StereoMeter = []
 
-        events = self.connection.input.read(256)
+        events = self.connection.input.read(128)
         cursor = 0
         for event in range(len(events)):
             for each in events[event]:
@@ -54,7 +54,7 @@ class Parser():
                             while not end:
                                 cursor += 1
                                 bite = events[cursor][0]
-                                if set([0xF7]).issubset(bite):
+                                if (0xF7 in bite):
                                      message.append(bite)
                                      end = True
                                 else:
@@ -70,9 +70,12 @@ class Parser():
                                         case[0x02,0x00]:
                                             BusMeter.append(res)
                                         case[0x04,0x00]:
-                                            StereoMeter.append(res)
+                                            StereoMeter.append((res[1],(128*message[2][3])+message[3][0]))
                                 else:
-                                    resolution.append(message)
+                                    if(message[0] != [0xF0,0x43,0x10,0x3E]):
+                                        message.insert(0,[0xF0,0x43,0x10,0x3E])
+                                    if message[1] != [0x1a, 0x21, 0x4, 0x0]:
+                                        resolution.append(message)
                                      
                         except IndexError as e:
                             #print (e)
@@ -109,7 +112,7 @@ class Parser():
                                     data.append(item)
                                 return data
         if not found :
-             raise ResponseException
+             raise ResponseException('Information not found')
 
              
              

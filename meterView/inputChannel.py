@@ -13,24 +13,40 @@ chanPan = [0x7F,0x01,0x1A,0x00]
 chanFad = [0x7F,0x01,0x1B,0x00]
 chanAtt = [0x7F,0x01,0x1C,0x00]
 select = [0x1A,0x04,0x09,0x18]
+auxSend = [0x7f,0x01,0x23,0x02]
 
 class inputChannel():
     """Yamaha digital mixer virtual input channel object"""
     connection = Connection
 
-    def __init__(self,val: int,conn: Connection):
+    def __init__(self,val: int,conn: Connection,**kwargs):
         """Pass an integer value to identify the channel"""
         self.connection = conn
+
+        ## channel parameters ##
         self.id = val
         self.level = 0
-    
-        self.on = object
-        self.main = object
-        self.fader = object
 
+        
+
+        ## auxSends ##
+        self.auxes = {each:-1 for each in range(kwargs['AUXCOUNT'])}
+
+
+        ## busSends ##
+        self.buses = {each:-1 for each in range(kwargs['BusCOUNT'])}
+        self.mainLR = -1
+        
+
+        ## channelButtons ##
+        self.cue = -1
+        self.selected = -1
+        self.insrtOn = -1
+        self.eqOn = -1
+        self.cmpOn = -1
+        self.gateOn = -1
         self.mute = -1
         self.stereo = -1
-        self.selected = -1
         
         try:
             if self.id<32:
@@ -38,14 +54,20 @@ class inputChannel():
                 #self.name = self.__get_name()
                 self.getinputOn()
                 self.getStereo()
+                self.getAuxSends()
             else:
                 self.short = str("ST 41" + str(self.id % 32))
                 self.name = str("STIN" + str(self.id % 32))
         except Exception as e: 
             print(e)
         
-        
+        ## channel objects
+        self.on = object
+        self.main = object
+        self.fader = object
+        self.faderlevel = 0
         self.meter = VU.Meter()
+        
         
     
     def __get_short(self):
@@ -130,6 +152,9 @@ class inputChannel():
         """polls meter value meter value data"""
         self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x1A,0x21,0x00,0x00,self.id,0x00,0x01,0xf7],when=midi.time())
 
+    def get_fader(self):
+        self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x7f,0x01,0x1c,0x00,self.id,0xf7],when=midi.time())
+
     def update_level(self,data):
         self.level = (data)
         return True
@@ -192,14 +217,33 @@ class inputChannel():
 
         while (self.stereo == -1):
             self.connection.output.write_sys_ex(msg = message,when=midi.time())
-            time.sleep(0.005) #waiting for the mixer as searching for a response immediately often is does not allow enough time for the mixer to respond
+            time.sleep(0.002) #waiting for the mixer as searching for a response immediately often is does not allow enough time for the mixer to respond
             try:
                 self.stereo = Parser.listenFor(self.connection,sysExChg,toStereo,self.id)[4]
             except ResponseException as e:
                 pass
 
     def select(self,cc):
-        self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x22,0x00,cc,0x00,0x00,0x00,0x01,0xf7],when=midi.time())
+        self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x10,0x3E,0x7F,0x01,0x22,0x00,self.id,0x00,0x00,0x00,0x01,0xf7],when=midi.time())
+
+    def getAuxSends(self):
+        """For each of the aux busses send a request for the level value and store it in local dictionary key value."""
+        message = [each for each in sysExReq]
+        for each in auxSend:
+            message.append(each)
+        for each in [self.id,0xF7]:
+            message.append(each)
+        
+        for each in self.auxes:
+            self.connection.output.write_sys_ex(msg = message, when = midi.time())
+            time.sleep(0.002)
+            current = message[4:8]
+            try:
+                self.auxes[each] = Parser.listenFor(self.connection,sysExChg,message[4:8],self.id)[4]
+            except Exception as e:
+                print(e)
+            message[7] += 2
+
 
     def draw(self,context,pos):
         """draws a meter for given input"""
@@ -215,3 +259,7 @@ class inputChannel():
                 pygame.draw.rect(context, (250, 200, 0), (pos[0]+18, pos[1]-(segment*5)+5, 5, 4))
             else:
                 pygame.draw.rect(context, (255, 0, 0), (pos[0]+18, pos[1]-(segment*5)+5, 5, 4))
+        
+        font = pygame.font.Font('freesansbold.ttf',11)
+        lbl = font.render(str(self.auxes[0]),True, (230,230,230))
+        context.blit(lbl, (pos[0]+18, pos[1] +5))

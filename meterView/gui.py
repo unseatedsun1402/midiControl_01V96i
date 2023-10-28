@@ -2,10 +2,16 @@
 import pygame
 from pygame import font
 from inputChannel import inputChannel
+import math
+
+class UIException(Exception):
+    def __init__(self, *args):
+         self.message = "UI error: "+ str(args)
+         #return self.message
 
 class sync():
     """Sync Element"""
-    def __init__(self, x, y, width, height, buttonText='ON', onclickFunction=None, onePress=False):
+    def __init__(self, x, y, width, height, buttonText='SYNC', onclickFunction=None, onePress=False):
         self.x = x
         self.y = y
         self.width = width
@@ -15,7 +21,49 @@ class sync():
         self.alreadyPressed = False
         self.clicked = False
         labelFont = font.Font('freesansbold.ttf',11)
-        self.mute = False
+
+        self.fillColors = {
+            'normal': '#CCAA22',
+            'hover': '#ffffff',
+            'pressed': '#77EE77',
+        }
+
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.textRect = pygame.Rect(self.x+3,self.y+2,self.width,self.height)
+        self.buttonSurf = labelFont.render(buttonText, True, (20, 20, 20))
+        self.indicator = pygame.Rect(self.x+6,self.y+10,self.width/2,self.height/5)
+        self.indicatorSurf = pygame.Surface((self.width/2, self.height/5))
+    
+    def draw(self,window):
+        pos = pygame.mouse.get_pos()
+            
+        if self.buttonRect.collidepoint(pos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+            if pygame.mouse.get_pressed()[0]:
+                if self.clicked:
+                    pass
+                else:
+                    pass
+                    
+            else:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+            
+        else:
+            self.buttonSurface.fill((240,240,240))
+        
+        window.blit(self.buttonSurface,self.buttonRect)
+        window.blit(self.buttonSurf,self.textRect)
+        #window.blit(self.indicatorSurf,self.indicator)
+
+class knob():
+    def __init__(self,x,y,radius,label,colour,onclickFuntion=None,onePress=False):
+        self.x = x
+        self.y = y
+        self.width = radius
+        self.height = radius
+        self.clicked = False
+        labelFont = font.Font('freesansbold.ttf',11)
 
         self.fillColors = {
             'normal': '#ffffff',
@@ -26,23 +74,32 @@ class sync():
         self.buttonSurface = pygame.Surface((self.width, self.height))
         self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.textRect = pygame.Rect(self.x+3,self.y,self.width,self.height)
-        self.buttonSurf = labelFont.render(buttonText, True, (20, 20, 20))
+        self.buttonSurf = labelFont.render(label, True, (20, 20, 20))
         self.indicator = pygame.Rect(self.x+6,self.y+10,self.width/2,self.height/5)
         self.indicatorSurf = pygame.Surface((self.width/2, self.height/5))
-    
-    def draw(self,window,conn):
+
+    def draw(self,window,**kwargs):
         pos = pygame.mouse.get_pos()
+        channel = kwargs['channel']
+        control = kwargs['control']
+        if channel.auxOn[control]:
+            pass
+            self.indicatorSurf.fill((196,100,44))
+        else:
+            self.indicatorSurf.fill((44,44,44))
             
+
         if self.buttonRect.collidepoint(pos):
             
             if pygame.mouse.get_pressed()[0]:
                 if self.clicked:
                     pass
                 else:
-                    return True
+                    channel.inputOn()
+                    self.clicked = True
                     
             else:
-                return False
+                self.clicked = False
             self.buttonSurface.fill((240,100,44))
         else:
             self.buttonSurface.fill((196,196,196))
@@ -215,25 +272,37 @@ class selectButton(inputChannel):
 
 class fader():
     """Fader UI Element"""
-    def __init__(self,x,y,width,height):
-        self.colour = (44,44,44)
-        self.x = x
-        self.y = y
-        self.position = 0
-        self.width = width
-        self.height = height
-        self.travel = 115
-        self.dragged = 0
-        self.clicked = False
+    def __init__(self,**kwargs,):
+        try:
+            if 'color' in kwargs:
+                match kwargs['color']:
+                    case 'red':
+                        self.colour = (230,10,10)
+            else:
+                self.colour = (44,44,44)
+            self.x = kwargs['x']
+            self.y =  kwargs['y']
+            self.position = 0
+            self.width =  kwargs['width']
+            self.height =  kwargs['height']
+            if 'travel' in kwargs:
+                self.travel = 147
+            else:
+                self.travel = 147
+            self.dragged = 0
+            self.clicked = False
+            
+            self.travelSurface = pygame.Surface((self.width, self.height))
+            self.buttonRect = pygame.Rect(self.x, self.y+self.position, self.width, self.height)
+            self.travelSurface.fill(self.colour)
         
-        self.travelSurface = pygame.Surface((self.width, self.height))
-        self.buttonRect = pygame.Rect(self.x, self.y+self.position, self.width, self.height)
-        self.travelSurface.fill(self.colour)
+        except:
+            raise UIException('color not found')
     
     def draw(self,window,channel):
         pos = pygame.mouse.get_pos()
+        change = False
         
-
         if self.buttonRect.collidepoint(pos):
             self.travelSurface.fill((196,196,196))
             if pygame.mouse.get_pressed()[0]:
@@ -264,10 +333,18 @@ class fader():
             else:
                 self.clicked = False
                 self.dragged = 0
+            if not channel.faderlevel == 0:
+                channel.faderlevel = int((127*math.log(self.position)) * 7)
+            change = True
+
+        else:
+             self.position = channel.faderlevel // 7
         
         self.dragged = pos[1]
         self.buttonRect = pygame.Rect(self.x, self.y-self.position, self.width, self.height)
         window.blit(self.travelSurface,self.buttonRect)
+        return change
+
 
 def debug(window,content):
     font = pygame.font.Font('freesansbold.ttf',18)

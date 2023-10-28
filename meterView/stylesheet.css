@@ -1,0 +1,15 @@
+@charset "UTF-8";
+
+body {
+    background-color: 71,75,80;
+}.range input {margin-top:10%;
+    -webkit-transform:rotate(90deg);
+    -moz-transform:rotate(90deg);
+    -o-transform:rotate(90deg);
+    transform:rotate(270deg);
+}; 
+
+p {
+    text-align: right;
+    color: aqua;
+}
