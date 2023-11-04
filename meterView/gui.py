@@ -343,7 +343,7 @@ class fader():
         self.dragged = pos[1]
         self.buttonRect = pygame.Rect(self.x, self.y-self.position, self.width, self.height)
         window.blit(self.travelSurface,self.buttonRect)
-        return change
+        return (change,self.position)
 
 
 def debug(window,content):

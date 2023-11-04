@@ -10,7 +10,7 @@ from pygame.locals import *
 import sys,pyaudio,time
 import pygame.midi as midi
 import threading
-from gui import onButton,stereoButton, fader, sync
+from gui import *
 
 
 ##--------Starting Variables-------##
@@ -79,7 +79,9 @@ def main():
                 lbl = labelFont.render(input[each].short,True, (230,230,230))
                 input[each].on.draw(window,input[each])
                 input[each].main.draw(window,input[each])
-                if(input[each].fader.draw(window,input[each])):
+                changes = input[each].fader.draw(window,input[each])
+                if(changes[0]):
+                    input[each].faderlevel = changes(1)
                     connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
                 
                 stereo.fader.draw(window,stereo)
@@ -91,6 +93,8 @@ def main():
             stereo.draw(window,(720,320))
             
             syncBtn.draw(window)
+
+            debug(window,input[1].faderlevel)
 
             window.blit(lbl, (700,330))
 
@@ -153,7 +157,7 @@ SCREENHEIGHT = 480
 def find_01V96i_desk():
     '''finds the mixing desk in the midi interfaces'''
     midi.init()
-    findA = b'Yamaha 01V96i-1'
+    findA = b'Yamaha 01V96i Port1'
     input_id = -1
     output_id = -1
 
@@ -162,6 +166,7 @@ def find_01V96i_desk():
         device = midi.get_device_info(i)
         
         (interf, name, input, output, opened) = device
+        name += b'_' # padding to ensure 'in' operation evalate to true if term == target
         if findA in name:
             if input == 1:
                 input_id = i
