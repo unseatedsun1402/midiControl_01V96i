@@ -280,6 +280,7 @@ class fader():
                         self.colour = (230,10,10)
             else:
                 self.colour = (44,44,44)
+                self.highlight = (196,196,196)
             self.x = kwargs['x']
             self.y =  kwargs['y']
             self.position = 0
@@ -301,46 +302,49 @@ class fader():
     
     def draw(self,window,channel):
         pos = pygame.mouse.get_pos()
+        pressed = pygame.mouse.get_pressed()[0]
+        collides = self.buttonRect.collidepoint(pos)
         change = False
-        
-        if self.buttonRect.collidepoint(pos):
-            self.travelSurface.fill((196,196,196))
-            if pygame.mouse.get_pressed()[0]:
-                if self.clicked: 
-                    pass
-                else:
-                    self.dragged = pos[1]
-                    self.clicked = True          
-            else:
-                self.clicked = False
-                self.dragged = 0
-        else:
-            self.travelSurface.fill(self.colour)
-        
-        if self.clicked: #checks position of mouse and moves fader
-            if pygame.mouse.get_pressed()[0]:
-                moved = (self.dragged-pos[1])
-                #debug(window,moved)
+        #if self.buttonRect.collidepoint(pos):
+        #        self.travelSurface.fill((196,196,196))
+        self.position = channel.faderlevel // 7
 
-                if (self.position + moved < self.travel):
-                    if(self.position + moved > 0):
-                        self.position += moved
+        if collides:
+            self.travelSurface.fill((self.highlight))
+
+        else:
+            self.travelSurface.fill((self.colour))
+        
+        if pressed:
+            if collides:
+                if not self.clicked:
+                    self.dragged = pos[1]
+                    self.clicked = True
+                    print('clicked')
+            
+            #checks position of mouse and moves fader
+            if self.clicked:
+                distancemoved = self.dragged + pos[1]
+                #print(distancemoved)
+
+                if(distancemoved > self.travel):
+                    print(distancemoved)
+                    if (self.position - distancemoved > 0):
+                        self.position -= distancemoved
                     else:
                         self.position = 0
                 else:
                     self.position = self.travel
                 
-            else:
-                self.clicked = False
-                self.dragged = 0
-            if not channel.faderlevel == 0:
-                channel.faderlevel = int((127*math.log(self.position)) * 7)
-            change = True
+                #print (self.position)
+                self.dragged = 0 #reset dragged value after finding new fader position
 
+                channel.faderlevel = abs(self.position)
         else:
-             self.position = channel.faderlevel // 7
-        
-        self.dragged = pos[1]
+            if self.clicked:
+                self.clicked = False
+                print('released ' + str(channel.id))
+
         self.buttonRect = pygame.Rect(self.x, self.y-self.position, self.width, self.height)
         window.blit(self.travelSurface,self.buttonRect)
         return (change,self.position)
@@ -351,3 +355,4 @@ def debug(window,content):
     information = font.render(str(content),True,(240,240,24))
     informationSurface = pygame.Rect(600,300,50, 50)
     window.blit(information, informationSurface)
+    return

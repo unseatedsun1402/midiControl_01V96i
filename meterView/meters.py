@@ -81,7 +81,6 @@ def main():
                 input[each].main.draw(window,input[each])
                 changes = input[each].fader.draw(window,input[each])
                 if(changes[0]):
-                    input[each].faderlevel = changes(1)
                     connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
                 
                 stereo.fader.draw(window,stereo)
@@ -94,7 +93,7 @@ def main():
             
             syncBtn.draw(window)
 
-            debug(window,input[1].faderlevel)
+            #debug(window,input[1].faderlevel)
 
             window.blit(lbl, (700,330))
 
