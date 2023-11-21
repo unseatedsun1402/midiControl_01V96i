@@ -10,6 +10,7 @@ from pygame.locals import *
 import sys,pyaudio,time
 import pygame.midi as midi
 import threading
+import gui
 from gui import *
 
 
@@ -79,6 +80,9 @@ def main():
                 lbl = labelFont.render(input[each].short,True, (230,230,230))
                 input[each].on.draw(window,input[each])
                 input[each].main.draw(window,input[each])
+                
+
+                #draw/check current fader selection
                 changes = input[each].fader.draw(window,input[each])
                 if(changes[0]):
                     connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
@@ -93,7 +97,7 @@ def main():
             
             syncBtn.draw(window)
 
-            #debug(window,input[1].faderlevel)
+            debug(window,input[1].faderlevel)
 
             window.blit(lbl, (700,330))
 

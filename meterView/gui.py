@@ -4,6 +4,8 @@ from pygame import font
 from inputChannel import inputChannel
 import math
 
+global channel
+
 class UIException(Exception):
     def __init__(self, *args):
          self.message = "UI error: "+ str(args)
@@ -305,9 +307,6 @@ class fader():
         pressed = pygame.mouse.get_pressed()[0]
         collides = self.buttonRect.collidepoint(pos)
         change = False
-        #if self.buttonRect.collidepoint(pos):
-        #        self.travelSurface.fill((196,196,196))
-        self.position = channel.faderlevel // 7
 
         if collides:
             self.travelSurface.fill((self.highlight))
@@ -320,30 +319,32 @@ class fader():
                 if not self.clicked:
                     self.dragged = pos[1]
                     self.clicked = True
-                    print('clicked')
+                    #print('clicked: ' + str(self.dragged))
             
-            #checks position of mouse and moves fader
+            ## checks position of mouse and moves fader
             if self.clicked:
-                distancemoved = self.dragged + pos[1]
-                #print(distancemoved)
+                change = True
+                distancemoved =  self.dragged-pos[1]
+                #print('distance moved: ' + str(distancemoved))
 
-                if(distancemoved > self.travel):
-                    print(distancemoved)
-                    if (self.position - distancemoved > 0):
-                        self.position -= distancemoved
-                    else:
+                if(distancemoved < self.travel):
+                    if (self.position + distancemoved > self.travel):
+                        self.position = self.travel
+
+                    elif(self.position + distancemoved <= 0):
                         self.position = 0
-                else:
-                    self.position = self.travel
+                    
+                    else:
+                        self.position += distancemoved
                 
-                #print (self.position)
-                self.dragged = 0 #reset dragged value after finding new fader position
 
-                channel.faderlevel = abs(self.position)
+                self.dragged = pos[1] #reset dragged value after finding new fader position
+
+                channel.set_fader(abs(self.position)*7)
         else:
             if self.clicked:
                 self.clicked = False
-                print('released ' + str(channel.id))
+                #print('released ' + str(channel.id))
 
         self.buttonRect = pygame.Rect(self.x, self.y-self.position, self.width, self.height)
         window.blit(self.travelSurface,self.buttonRect)
