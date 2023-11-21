@@ -89,6 +89,8 @@ class Parser():
         return (returnVal)
     
     def listenFor(connection,*args):
+        '''listens for a specific command'''
+        
         direction = args[0]
         param = args[1]
         cc = args[2]

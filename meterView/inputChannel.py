@@ -158,6 +158,10 @@ class inputChannel():
     def set_fader(self, data):
         self.faderlevel = data
     
+    def get_auxes(self):
+        for i in range(2,17,3):
+            self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x7f,0x01,0x23,i,self.id,0xf7],when=midi.time())
+
     def update_level(self,data):
         self.level = (data)
         return True

@@ -63,6 +63,7 @@ def main():
         stereo.fader = fader(x=680,y=295,height =20, width = 15,color = 'red',travel = 146)
         syncBtn = sync(x=400,y=20,height =15, width =35,onclickFunction=synConsole)
         poll_meters()
+
             
     except:
         print("Connection failed")
@@ -190,10 +191,9 @@ def poll_meters():
 def check_changes(res):
     for each in res:
         match each[1]:
-
+            #input channel
             case [0x7F,0x01,0x1c,0x00]:
                 input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
-            #print(str('input '+str(each[2][0])+' fader = '+str(input[each[2][0]].faderlevel)))
             case [0x1a, 0x4, 0x5a, 0x0]:
                 input[each[2][0]].mute = each[3][0]
 
@@ -202,9 +202,28 @@ def check_changes(res):
 
             case [0x7f,0x01,0x4f,0x00]:
                 stereo.faderlevel = (128*each[2][3])+each[3][0]
+            
+            #sends on aux mix
+            case [0x7F,0x01,0x23,0x02]:
+                input[each[2][0]].auxes[0] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0x05]:
+                input[each[2][0]].auxes[1] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0x08]:
+                input[each[2][0]].auxes[2] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0xb]:
+                input[each[2][0]].auxes[3] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0xe]:
+                input[each[2][0]].auxes[4] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0x11]:
+                input[each[2][0]].auxes[5] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0x14]:
+                input[each[2][0]].auxes[6] = (128*each[2][3])+each[3][0]
+            case [0x7F,0x01,0x23,0x17]:
+                input[each[2][0]].auxes[7] = (128*each[2][3])+each[3][0]
 
             case default:
                 print([[hex(bit)for bit in bite] for bite in each])
+            
             
 
 def update_meters():
@@ -224,9 +243,12 @@ def update_meters():
     #time.sleep(1/15)
 
 def synConsole():
+    print('syncing...')
     for each in input:
         input[each].get_fader()
-        print(PARSER.listenFor(connection,[0xF0,0x43,0x10,0x3E],[0x7F,0x01,0x1C,0x00],each))
+        input[each].get_auxes()
+        #print(PARSER.listenFor(connection,[0xF0,0x43,0x10,0x3E],[0x7F,0x01,0x1C,0x00],each))
+    print('synced')
 
 
 

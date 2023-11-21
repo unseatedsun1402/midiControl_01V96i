@@ -26,7 +26,7 @@ class sync():
 
         self.fillColors = {
             'normal': '#CCAA22',
-            'hover': '#ffffff',
+            'hover': '#ffff44',
             'pressed': '#77EE77',
         }
 
@@ -43,16 +43,11 @@ class sync():
         if self.buttonRect.collidepoint(pos):
             self.buttonSurface.fill(self.fillColors['hover'])
             if pygame.mouse.get_pressed()[0]:
-                if self.clicked:
-                    pass
-                else:
-                    pass
-                    
-            else:
                 self.buttonSurface.fill(self.fillColors['pressed'])
-            
+                self.onclickFunction()    
+                
         else:
-            self.buttonSurface.fill((240,240,240))
+            self.buttonSurface.fill(self.fillColors['normal'])
         
         window.blit(self.buttonSurface,self.buttonRect)
         window.blit(self.buttonSurf,self.textRect)
