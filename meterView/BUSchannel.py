@@ -14,7 +14,7 @@ chanFad = [0x7F,0x01,0x1B,0x00]
 chanAtt = [0x7F,0x01,0x1C,0x00]
 select = [0x1A,0x04,0x09,0x18]
 
-class auxChannel():
+class busChannel():
     """Yamaha digital mixer virtual aux channel object"""
     connection = Connection
 
@@ -37,20 +37,24 @@ class auxChannel():
         self.cue = -1
         
         try:
-            self.short = self.__get_short()
-            #self.name = self.__get_name()
-            self.getauxOn()
-            self.getStereo()
+            if self.id<32:
+                self.short = self.__get_short()
+                #self.name = self.__get_name()
+                self.getauxOn()
+                self.getStereo()
+            else:
+                self.short = str("ST 41" + str(self.id % 32))
+                self.name = str("STIN" + str(self.id % 32))
         except Exception as e: 
             print(e)
         
         
-        #self.meter = VU.Meter()
+        self.meter = VU.Meter()
         
     
     def __get_short(self):
         """Gets short (xxxx) channel name"""
-        msg = [0xF0,0x43,0x30,0x3E,0x1A,0x02,0x10,0x00,self.id]
+        msg = [0xF0,0x43,0x30,0x3E,0x1A,0x02,0x0F,0x00,self.id]
         msg.append(0xf7)
         message = ['1','2','3','4']
         i = 0
@@ -69,7 +73,7 @@ class auxChannel():
                             reading = True
                             for each in buffer[events][0]:
                                 sysex.append(each)
-                    elif [0x1a,0x02,0x10,i] == buffer[events][0]:
+                    elif [0x1a,0x02,0x0F,i] == buffer[events][0]:
                         for each in buffer[events][0]:
                             sysex.append(each)
                         if set([self.id,0x00,0x00]).issubset(buffer[events+1][0]):

@@ -53,6 +53,49 @@ class sync():
         window.blit(self.buttonSurf,self.textRect)
         #window.blit(self.indicatorSurf,self.indicator)
 
+class Button():
+    """Misc Element"""
+    def __init__(self, x, y, width, height, buttonText=None, onclickFunction=None, onePress=False, val =None):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.val = val
+        self.onclickFunction = onclickFunction
+        self.onePress = onePress
+        self.alreadyPressed = False
+        self.clicked = False
+        labelFont = font.Font('freesansbold.ttf',11)
+
+        self.fillColors = {
+            'normal': '#AA22CC',
+            'hover': '#BB22BB',
+            'pressed': '#dddddd',
+        }
+
+        self.buttonSurface = pygame.Surface((self.width, self.height))
+        self.buttonRect = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.textRect = pygame.Rect(self.x+3,self.y+2,self.width,self.height)
+        self.buttonSurf = labelFont.render(buttonText, True, (20, 20, 20))
+        self.indicator = pygame.Rect(self.x+6,self.y+10,self.width/2,self.height/5)
+        self.indicatorSurf = pygame.Surface((self.width/2, self.height/5))
+    
+    def draw(self,window):
+        pos = pygame.mouse.get_pos()
+            
+        if self.buttonRect.collidepoint(pos):
+            self.buttonSurface.fill(self.fillColors['hover'])
+            if pygame.mouse.get_pressed()[0]:
+                self.buttonSurface.fill(self.fillColors['pressed'])
+                self.onclickFunction(self.val)    
+                
+        else:
+            self.buttonSurface.fill(self.fillColors['normal'])
+        
+        window.blit(self.buttonSurface,self.buttonRect)
+        window.blit(self.buttonSurf,self.textRect)
+        #window.blit(self.indicatorSurf,self.indicator)
+
 class knob():
     def __init__(self,x,y,radius,label,colour,onclickFuntion=None,onePress=False):
         self.x = x
@@ -275,9 +318,13 @@ class fader():
                 match kwargs['color']:
                     case 'red':
                         self.colour = (230,10,10)
+                    case 'blue':
+                        self.colour = (10,10,230)
+                    case 'yellow':
+                        self.colour = (230,230,10)
             else:
                 self.colour = (44,44,44)
-                self.highlight = (196,196,196)
+            self.highlight = (196,196,196)
             self.x = kwargs['x']
             self.y =  kwargs['y']
             self.position = 0
@@ -302,6 +349,7 @@ class fader():
         pressed = pygame.mouse.get_pressed()[0]
         collides = self.buttonRect.collidepoint(pos)
         change = False
+        self.position = channel.faderlevel//7
 
         if collides:
             self.travelSurface.fill((self.highlight))

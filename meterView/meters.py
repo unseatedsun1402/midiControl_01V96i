@@ -2,6 +2,7 @@ from Connection import Connection
 from Parser import Parser
 from inputChannel import inputChannel
 from AUXchannel import auxChannel
+from BUSchannel import busChannel
 from stereoBus import stereoBus
 import VU
 from errno import errorcode
@@ -45,12 +46,29 @@ def main():
         
         global input
         global aux
+        global bus
         global stereo
+        global fadermode
+
+        modes = {
+            0:[0x7F,0x01,0x1C,0x00],
+            1:[0x7F,0x01,0x23,0x02],
+            2:[0x7F,0x01,0x23,0x05],
+            3:[0x7F,0x01,0x23,0x08],
+            4:[0x7F,0x01,0x23,0xb],
+            5:[0x7F,0x01,0x23,0xe],
+            6:[0x7F,0x01,0x23,0x11],
+            7:[0x7F,0x01,0x23,0x14],
+            8:[0x7F,0x01,0x23,0x17]
+        }
 
         PARSER = Parser(connection)
         input =  {i:inputChannel(i,conn = connection,AUXCOUNT = 8, BusCOUNT=8) for i in range(32)}
-        #aux = {i:auxChannel(i,conn = connection) for i in range(8)}
+        aux = {i:auxChannel(i,conn = connection) for i in range(8)}
+        bus = {i:busChannel(i,conn = connection) for i in range(8)}
         stereo = stereoBus(conn = connection)
+
+        fadermode = 0
         line = 1
         for each in input:
             if(input[each].id>15):
@@ -62,8 +80,12 @@ def main():
 
         stereo.fader = fader(x=680,y=295,height =20, width = 15,color = 'red',travel = 146)
         syncBtn = sync(x=400,y=20,height =15, width =35,onclickFunction=synConsole)
+        for each in aux:
+            aux[each].sendsonfaderBtn = Button(x=560+(30*(each%2)),y=180+((each//2)*25),height = 20, width = 25, buttonText=aux[each].short,onclickFunction=sendsonfader,val = each+1)
+        mixView = Button(x=560,y=155,height = 20, width= 60, buttonText='mixView',onclickFunction=sendsonfader, val=0)
+        #pass
+        
         poll_meters()
-
             
     except:
         print("Connection failed")
@@ -86,11 +108,28 @@ def main():
                 #draw/check current fader selection
                 changes = input[each].fader.draw(window,input[each])
                 if(changes[0]):
-                    connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
+                    connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,modes[fadermode][0],modes[fadermode][1],modes[fadermode][2],modes[fadermode][3],each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
                 
-                stereo.fader.draw(window,stereo)
+                
 
                 window.blit(lbl, (pos[0],pos[1]+2))
+
+            #sends on fader
+            mixView.draw(window)
+            for each in aux:
+                aux[each].sendsonfaderBtn.draw(window)
+            
+
+            #draw/check current fader selection
+            changes = input[each].fader.draw(window,input[each])
+            if changes[0]:
+                connection.output.write_sys_ex(when=midi.time(),msg=[0xF0,0x43,0x10,0x3E,0x7F,0x01,0x1C,0x00,each,0,0,input[each].faderlevel//128,input[each].faderlevel%128,0xF7])
+                
+            stereo.fader.draw(window,stereo)    
+
+            '''changes = stereo.fader.draw(window,stereo)
+            if changes[0]:
+                stereo.send_fader() '''
             
             lbl = labelFont.render("Stereo LR",True, (230,230,230))
             
@@ -191,9 +230,12 @@ def poll_meters():
 def check_changes(res):
     for each in res:
         match each[1]:
-            #input channel
+
             case [0x7F,0x01,0x1c,0x00]:
-                input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
+                if (fadermode == 0):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
+                input[each[2][0]].mainLR = (128*each[2][3])+each[3][0]
+            #print(str('input '+str(each[2][0])+' fader = '+str(input[each[2][0]].faderlevel)))
             case [0x1a, 0x4, 0x5a, 0x0]:
                 input[each[2][0]].mute = each[3][0]
 
@@ -203,22 +245,45 @@ def check_changes(res):
             case [0x7f,0x01,0x4f,0x00]:
                 stereo.faderlevel = (128*each[2][3])+each[3][0]
             
-            #sends on aux mix
-            case [0x7F,0x01,0x23,0x02]:
+            ## sends on aux mix
+            case [0x7F,0x01,0x23,0x02]:         #AUX1
+                if (fadermode == 1):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[0] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0x05]:
+
+            case [0x7F,0x01,0x23,0x05]:         #AUX2
+                if (fadermode == 2):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[1] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0x08]:
+            
+            case [0x7F,0x01,0x23,0x08]:         #AUX3
+                if (fadermode == 3):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[2] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0xb]:
+            
+            case [0x7F,0x01,0x23,0xb]:          #AUX4
+                if (fadermode == 4):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[3] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0xe]:
+            
+            case [0x7F,0x01,0x23,0xe]:          #AUX5
+                if (fadermode == 5):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[4] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0x11]:
+            
+            case [0x7F,0x01,0x23,0x11]:         #AUX6
+                if (fadermode == 6):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[5] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0x14]:
+            
+            case [0x7F,0x01,0x23,0x14]:         #AUX7
+                if (fadermode == 7):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[6] = (128*each[2][3])+each[3][0]
-            case [0x7F,0x01,0x23,0x17]:
+            
+            case [0x7F,0x01,0x23,0x17]:         #AUX8
+                if (fadermode == 8):
+                    input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[7] = (128*each[2][3])+each[3][0]
 
             case default:
@@ -250,7 +315,17 @@ def synConsole():
         #print(PARSER.listenFor(connection,[0xF0,0x43,0x10,0x3E],[0x7F,0x01,0x1C,0x00],each))
     print('synced')
 
+def sendsonfader(mix):
+    global fadermode
+    fadermode = mix
+    if mix == 0:
+        for each in input:
+            input[each].faderlevel = input[each].mainLR
+    else:
+        for each in input:
+            input[each].faderlevel = input[each].auxes[mix-1]
 
+    
 
 
 test = [0xF0,0x43,0x30,0x3e,0x1a,0x00,0x00,0x00,0x12,0x00,0xf7]

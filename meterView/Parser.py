@@ -41,7 +41,7 @@ class Parser():
         #MatrixMeter = []
         StereoMeter = []
 
-        events = self.connection.input.read(128)
+        events = self.connection.input.read(256)
         cursor = 0
         for event in range(len(events)):
             for each in events[event]:
@@ -90,7 +90,7 @@ class Parser():
     
     def listenFor(connection,*args):
         '''listens for a specific command'''
-        
+
         direction = args[0]
         param = args[1]
         cc = args[2]
@@ -98,7 +98,7 @@ class Parser():
 
         response = []
         found = False
-        events = connection.input.read(256)
+        events = connection.input.read(512)
         for event in range(len(events)-2):
             for each in events[event]:
                 if(isinstance(each,int) != True):

@@ -34,6 +34,12 @@ class stereoBus():
     def get_fader(self):
         self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x30,0x3E,0x7f,0x01,0x4f,0x00,0x00,0xf7],when=midi.time())
 
+    def set_fader(self,data):
+        self.faderlevel = data
+    
+    def send_fader(self):
+        self.connection.output.write_sys_ex(msg = [0xF0,0x43,0x10,0x3E,0x7f,0x01,0x4f,0x0,0x00,0x00,(self.faderlevel//128),(self.faderlevel%128),0xf7],when=midi.time())
+
     def draw(self,context,pos):
         """draws a meter for given input"""
         
