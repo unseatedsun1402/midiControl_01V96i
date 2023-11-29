@@ -1,17 +1,29 @@
-import inputChannel, AUXchannel, BUSchannel, stereoBus
+import inputChannel, AUXchannel, BUSchannel, stereoBus, Connection
+from AUXchannel import auxChannel
+from BUSchannel import busChannel
+from inputChannel import inputChannel
 
-def setup(type = None):
-    # M7CL Config
-    inp = {inputChannel for i in range(47)}
-    bus = {BUSchannel for i in range(15)}
-    aux = {BUSchannel for i in range(15)}
+def setup(conn = None,type = None):
+    if(conn == None):
+        conn = Connection()
 
-    # LS9-32 Config
-    inp = {inputChannel for i in range(63)}
-    bus = {BUSchannel for i in range(15)}
-    aux = {BUSchannel for i in range(15)}
+    match(type):
+        # M7CL Config
+        case('m7cl'):   
+            inp = {i:inputChannel(i, conn,AUXCOUNT = 16, BusCOUNT=16) for i in range(48)}
+            aux = {i:auxChannel(i,conn = conn) for i in range(16)}
+            bus = {i:busChannel(i,conn = conn) for i in range(16)}
 
-    # 01v96 Config
-    inp = {inputChannel for i in range(31)}
-    bus = {BUSchannel for i in range(7)}
-    aux = {AUXchannel for i in range(7)}
+        # LS9-32 Config
+        case('LS9-32'):
+            inp = {i:inputChannel(i, conn,AUXCOUNT = 16, BusCOUNT=16) for i in range(64)}
+            aux = {i:auxChannel(i,conn = conn) for i in range(16)}
+            bus = {i:busChannel(i,conn = conn) for i in range(16)}
+
+        # 01v96 Config
+        case('01V96i'):
+            inp = {i:inputChannel(i, conn,AUXCOUNT = 8, BusCOUNT=8) for i in range(32)}
+            aux = {i:auxChannel(i,conn = conn) for i in range(8)}
+            bus = {i:busChannel(i,conn = conn) for i in range(8)}
+    
+    return(inp,bus,aux)

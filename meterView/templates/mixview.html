@@ -4,10 +4,10 @@
 <div id="mixview">
     {%for each in channels%}
     <div class="col-sm">
-        <label for={{each.id}}>
-        {{each.name}}
+        <label for={{channels[each].id}}>
+        {{channels[each].short}}
         </label>
-        <input id={{each.id}} type="range" class="slider" min="0" max="127" value="78" step="1"/>
+        <input id={{channels[each].id}} type="range" class="slider" min="0" max="127" value="78" step="1"/>
     </div>
     {%endfor%}
     <div id="outputWindow"></div>
@@ -17,7 +17,7 @@
 
     document.getElementById("mix-selection").addEventListener("onchange",function(){
         let mix = document.getElementById("mix-selection").value;
-        console.log(this.value)
+        // console.log(this.value)
         
     })
 
@@ -26,10 +26,11 @@
 <script>
     let sliders = document.getElementsByClassName("slider")
     for (const iterator of sliders) {
-        console.log(iterator.id)
+        // console.log(iterator.id)
         document.getElementById(iterator.id).addEventListener("input",function(event){
             value = event.target.value
-            socket.emit("faderchange",{"channel":event.target.id,"value":value})
+            mix = document.getElementById("mix-selection").value
+            socket.emit("faderchange",{"channel":event.target.id,"value":value,"mix":mix})
             document.getElementById("outputWindow").innerHTML = ('Fader change'+' Ch'+iterator.id+' '+value+': '+(Math.round((50*Math.log10(value)))-95)+'dB')
         })
     }

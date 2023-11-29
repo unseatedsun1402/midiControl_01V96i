@@ -1,6 +1,6 @@
 from distutils.log import error
 import pygame.midi as midi
-from tkinter import *
+# from tkinter import *
 
 class Connection():
     """Connection is a class object that can access a midi device input and output"""

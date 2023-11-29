@@ -19,10 +19,55 @@
         </h1>
         {%endblock heading%}
         <select title="Mix" id="mix-selection"><option>none</option>
-        <option>Keys</option>
-        <option>Mix 2</option>
-        <option>Mix 3</options>
-        <option>Drums</option></select>
+        <!-- <option>Keys</option> -->
+        <!-- <option>Mix 2</option> -->
+        <!-- <option>Mix 3</options> -->
+        <!-- <option>Drums</option> -->
+        </select>
+        <script>
+            // document.getElementById('mix-selection').addEventListener('click',async function(event){
+            //     let res = await fetch("objects",{
+            //         method: "POST",
+            //         headers: {
+            //         "Content-Type": "application/json",
+            //         // 'Content-Type': 'application/x-www-form-urlencoded',
+            //         },
+            //         body: JSON.stringify({
+            //             "Status":"Request","Type":"MixSelect"
+            //         }),
+            //     });
+
+            //     if (res.status === 200) {
+            //         promise = res.json();
+            //         document.getElementById("mix-selection").innerHTML = promise.html;
+            //         alert("Mixes Recieved");
+            //         //console.log(res);
+                    
+            //     } else {
+            //         //console.log(res);
+            //         promise = res.json()
+            //         this.setState({message: "An error occured"});
+                    
+            //     }
+            //     })
+            
+            async function populateSelection(){
+                try{
+                console.log('populating...')
+                await fetch("/options")
+                    .then((response) => response.json())
+                        .then((data) => {
+                            document.getElementById("mix-selection").innerHTML = data.html
+                            console.log(data);
+                        })
+                }
+                catch(error){
+                    console.log(error)
+                }
+            }
+
+            populateSelection()
+        </script>
         {%block mixview%}
         {%endblock mixview%}
     </body>

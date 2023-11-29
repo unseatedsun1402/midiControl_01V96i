@@ -40,7 +40,6 @@ def main():
 
 
     try:
-        device = find_01V96i_desk()
         connection = Connection()
         global PARSER
         
