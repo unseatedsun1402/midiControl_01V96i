@@ -1,0 +1,30 @@
+ <html lang = en>
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+                    
+        {%if title%}
+        <title>{{title}}</title>
+        {%else%}
+        <title>In Ear Monitor Mix</title>
+        {%endif%}
+        <script src="https://cdn.socket.io/4.6.0/socket.io.min.js" integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        {%block heading%}
+        <h1>
+        {{content}}
+        </h1>
+        {%endblock heading%}
+        <select title="Mix" id="mix-selection"><option>none</option>
+        <option>Keys</option>
+        <option>Mix 2</option>
+        <option>Mix 3</options>
+        <option>Drums</option></select>
+        {%block mixview%}
+        {%endblock mixview%}
+    </body>
+    
+</html>

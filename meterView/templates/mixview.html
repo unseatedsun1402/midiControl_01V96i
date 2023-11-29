@@ -1,0 +1,41 @@
+{%extends "layout.html"%}
+
+{%block mixview%}
+<div id="mixview">
+    {%for each in channels%}
+    <div class="col-sm">
+        <label for={{each.id}}>
+        {{each.name}}
+        </label>
+        <input id={{each.id}} type="range" class="slider" min="0" max="127" value="78" step="1"/>
+    </div>
+    {%endfor%}
+    <div id="outputWindow"></div>
+</div>
+<script>
+    const socket = io({autoConnect:false})
+
+    document.getElementById("mix-selection").addEventListener("onchange",function(){
+        let mix = document.getElementById("mix-selection").value;
+        console.log(this.value)
+        
+    })
+
+    socket.connect()
+</script>
+<script>
+    let sliders = document.getElementsByClassName("slider")
+    for (const iterator of sliders) {
+        console.log(iterator.id)
+        document.getElementById(iterator.id).addEventListener("input",function(event){
+            value = event.target.value
+            socket.emit("faderchange",{"channel":event.target.id,"value":value})
+            document.getElementById("outputWindow").innerHTML = ('Fader change'+' Ch'+iterator.id+' '+value+': '+(Math.round((50*Math.log10(value)))-95)+'dB')
+        })
+    }
+
+    socket.on("faderchange",function(data){
+        console.log(data)
+    })
+</script>
+{%endblock mixview%}

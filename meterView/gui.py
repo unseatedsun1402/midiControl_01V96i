@@ -331,9 +331,9 @@ class fader():
             self.width =  kwargs['width']
             self.height =  kwargs['height']
             if 'travel' in kwargs:
-                self.travel = 147
+                self.travel = 256
             else:
-                self.travel = 147
+                self.travel = 128
             self.dragged = 0
             self.clicked = False
             
@@ -349,7 +349,7 @@ class fader():
         pressed = pygame.mouse.get_pressed()[0]
         collides = self.buttonRect.collidepoint(pos)
         change = False
-        self.position = channel.faderlevel//7
+        self.position = channel.faderlevel//8
 
         if collides:
             self.travelSurface.fill((self.highlight))
@@ -383,7 +383,7 @@ class fader():
 
                 self.dragged = pos[1] #reset dragged value after finding new fader position
 
-                channel.set_fader(abs(self.position)*7)
+                channel.set_fader(abs(self.position)*8)
         else:
             if self.clicked:
                 self.clicked = False

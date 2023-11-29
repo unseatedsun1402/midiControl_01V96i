@@ -268,5 +268,5 @@ class inputChannel():
                 pygame.draw.rect(context, (255, 0, 0), (pos[0]+18, pos[1]-(segment*5)+5, 5, 4))
         
         font = pygame.font.Font('freesansbold.ttf',11)
-        lbl = font.render(str(self.auxes[0]),True, (230,230,230))
-        context.blit(lbl, (pos[0]+18, pos[1] +5))
+        # lbl = font.render(str(self.auxes[0]),True, (230,230,230))
+        # context.blit(lbl, (pos[0]+18, pos[1] +5))

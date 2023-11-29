@@ -14,13 +14,13 @@ import threading
 import gui
 from gui import *
 
-
 ##--------Starting Variables-------##
 connection = Connection
 PARSER = Parser
 frame = 0
 skipped = 0
 refreshTime = time.time()
+pollTime = time.time()
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
 
     try:
         device = find_01V96i_desk()
-        connection = Connection(device)
+        connection = Connection()
         global PARSER
         
         global input
@@ -76,17 +76,17 @@ def main():
             pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*200))-30))
             input[each].on = onButton(x=pos[0],y=pos[1]-170,height =14, width =25)
             input[each].main = stereoButton(x=pos[0],y=pos[1]-185,height =14, width =25)
-            input[each].fader = fader(x=pos[0],y=pos[1]-10,height =14, width = 15)
+            input[each].fader = fader(x=pos[0],y=pos[1]-22,height =18, width = 15)
 
         stereo.fader = fader(x=680,y=295,height =20, width = 15,color = 'red',travel = 146)
         syncBtn = sync(x=400,y=20,height =15, width =35,onclickFunction=synConsole)
         for each in aux:
-            aux[each].sendsonfaderBtn = Button(x=560+(30*(each%2)),y=180+((each//2)*25),height = 20, width = 25, buttonText=aux[each].short,onclickFunction=sendsonfader,val = each+1)
-        mixView = Button(x=560,y=155,height = 20, width= 60, buttonText='mixView',onclickFunction=sendsonfader, val=0)
+            aux[each].sendsonfaderBtn = Button(x=560+(42*(each%2)),y=180+((each//2)*30),height = 20, width = 37, buttonText=aux[each].short,onclickFunction=sendsonfader,val = each+1)
+        mixView = Button(x=560,y=155,height = 20, width= 80, buttonText='mixView',onclickFunction=sendsonfader, val=0)
         #pass
         
         poll_meters()
-            
+
     except:
         print("Connection failed")
 
@@ -99,7 +99,7 @@ def main():
                 if(input[each].id>15):
                     line = 0
                 pos = ((input[each].id%16 * 30)+3,int((SCREENHEIGHT-(line*200))-30))
-                input[each].draw(window,(pos[0],pos[1]+10))
+                input[each].draw(window,(pos[0],pos[1]))
                 lbl = labelFont.render(input[each].short,True, (230,230,230))
                 input[each].on.draw(window,input[each])
                 input[each].main.draw(window,input[each])
@@ -112,7 +112,7 @@ def main():
                 
                 
 
-                window.blit(lbl, (pos[0],pos[1]+2))
+                window.blit(lbl, (pos[0]-1,pos[1]))
 
             #sends on fader
             mixView.draw(window)
@@ -157,15 +157,14 @@ def main():
         global frame
         global skipped
         global refreshTime
+        global pollTime
 
         frametime = time.time()
-        if (frametime - refreshTime > 10): #After 10 seconds meter polling stops sending values. needs to be called again
+        if (frametime - pollTime > 10): #After 10 seconds meter polling stops sending values. needs to be called again
             poll_meters() #polls input meters
-            refreshTime = time.time()
+            pollTime = time.time()
         
-        if (frame < 15):
-            frame += 1
-        else: frame = 0
+        
 
         window.fill((71,75,80))
         for event in pg.event.get():
@@ -173,20 +172,15 @@ def main():
                 pg.quit()
                 sys.exit()
                 
-        draw()
-        #PARSER.listen()
-        #print("frametime: " + str(time.time()-frametime))
-        if time.time()-frametime > 0.010:
-            pass
-        else:
-            skipped += 1
-            if skipped > 100:
-                pass
         
         update_meters()
         
         #check_changes()
-        pg.display.update()
+        if (frametime-refreshTime > 0.03):
+            draw()
+            pg.display.update()
+            refreshTime = time.time()
+        # pg.display.update()
     
     while True:
         mainloop()
@@ -197,27 +191,6 @@ def main():
 SCREENWIDTH = 800
 SCREENHEIGHT = 480
 
-def find_01V96i_desk():
-    '''finds the mixing desk in the midi interfaces'''
-    midi.init()
-    findA = b'Yamaha 01V96i Port1'
-    input_id = -1
-    output_id = -1
-
-    nofdevices = midi.get_count()
-    for i in range(nofdevices):
-        device = midi.get_device_info(i)
-        
-        (interf, name, input, output, opened) = device
-        name += b'_' # padding to ensure 'in' operation evalate to true if term == target
-        if findA in name:
-            if input == 1:
-                input_id = i
-            if output == 1:
-                output_id = i
-    midi.quit
-    device = (input_id,output_id)
-    return(device)
 
 def poll_meters():
     for each in input:
@@ -261,12 +234,12 @@ def check_changes(res):
                     input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[2] = (128*each[2][3])+each[3][0]
             
-            case [0x7F,0x01,0x23,0xb]:          #AUX4
+            case [0x7F,0x01,0x23,0x0b]:          #AUX4
                 if (fadermode == 4):
                     input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[3] = (128*each[2][3])+each[3][0]
             
-            case [0x7F,0x01,0x23,0xe]:          #AUX5
+            case [0x7F,0x01,0x23,0x0e]:          #AUX5
                 if (fadermode == 5):
                     input[each[2][0]].faderlevel = (128*each[2][3])+each[3][0]
                 input[each[2][0]].auxes[4] = (128*each[2][3])+each[3][0]
@@ -287,7 +260,8 @@ def check_changes(res):
                 input[each[2][0]].auxes[7] = (128*each[2][3])+each[3][0]
 
             case default:
-                print([[hex(bit)for bit in bite] for bite in each])
+                # print([[hex(bit)for bit in bite] for bite in each])
+                pass
             
             
 
