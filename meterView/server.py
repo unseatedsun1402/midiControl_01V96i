@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import time,os, sys, deskConfig, Connection
+import time,os, sys, deskConfig, Connection, threading, Parser
 from flask import Flask, render_template, request, Blueprint,jsonify
 from flask_socketio import SocketIO, emit
 
@@ -90,12 +90,11 @@ async def handle_select():
 
 
 
-
 if __name__ == "__main__":
     app = create_app()
     conn = Connection.Connection()
     inp,bus,aux = deskConfig.setup(conn = conn, type = '01V96i')
-
+    PARSER = Parser()
     socketio.run(app)
 
 def start():
