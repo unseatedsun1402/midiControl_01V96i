@@ -1,8 +1,10 @@
 # midiControl_01V96i
+<br/>
 ---- New Version in Java ----
 In March 2024, I decided to try to move this project to java instead of python for the slight performance benefits and more industry standard web service support.
-This Version has been tested as working with one way communication to the desk and supports the 01V96 Mixer (mix 1-8 is on controlled on 9-16) and the M7CL mixer
----- Python version currently undeveloped ----
+This Version has been tested as working with one way communication to the desk and supports the 01V96 Mixer (mix 1-8 is on controlled on 9-16) and the M7CL mixer<br/>
+https://github.com/unseatedsun1402/YamahaMixerControl
+---- Python version currently undeveloped ----<br/>
 
 Python program using pygame to connect to Yamaha 01V96i Digital mixing desk and provide control over Midi for various parameters
 
